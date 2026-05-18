@@ -4,318 +4,437 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>湯川秀樹：探求者的思緒</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght=400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* 1. 背景與黑板設計 */
+        /* 高級感極簡暗黑風格設計 */
         body {
             margin: 0;
             padding: 0;
-            height: 100vh;
+            background-color: #0f0f12; /* 純粹暗黑基底 */
+            color: #e2e8f0;
+            font-family: 'Noto Serif TC', serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Noto Serif TC', serif;
-            background-color: #1a1a1e; /* 深石板色 */
-            /* 模擬黑板質感與粉筆灰 */
-            background-image: 
-                radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(to right, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
-            background-size: 80px 80px, 200px 200px;
-            overflow: hidden;
-            color: #f1f1f1;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        /* 湯川勢公式背景浮水印 */
-        #formula-container {
-            position: absolute;
-            bottom: 50px;
-            right: 50px;
-            opacity: 0.1;
-            font-size: 40px;
-            pointer-events: none;
-            color: #ffffff;
-            font-family: 'Roboto Mono', monospace;
-        }
-
-        /* 2. 遊戲主容器（毛玻璃質感） */
+        /* 遊戲主卡片 */
         .game-container {
-            width: 90%;
-            max-width: 600px;
-            background: rgba(45, 45, 55, 0.85);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            transition: transform 0.4s ease, opacity 0.4s ease;
-        }
-
-        .fade-in { opacity: 1; transform: translateY(0); }
-        .fade-out { opacity: 0; transform: translateY(-20px); }
-
-        /* 題目樣式 */
-        h2 {
-            font-size: 22px;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            text-align: left;
-            border-left: 4px solid #8e94f2;
-            padding-left: 15px;
-        }
-
-        /* 選項按鈕 */
-        .options-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 18px 25px;
+            width: 100%;
+            max-width: 580px;
+            background-color: #17171c; /* 內斂黑灰色 */
+            border: 1px solid #26262b;
             border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        /* 轉場動畫樣式 */
+        .fade { opacity: 0; transform: translateY(8px); }
+        .show { opacity: 1; transform: translateY(0); }
+
+        /* 封面佈局 */
+        .cover-view {
+            text-align: center;
+            padding: 30px 0;
+        }
+        .cover-title {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 3px;
             color: #ffffff;
-            font-size: 17px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            margin-bottom: 16px;
+        }
+        .cover-subtitle {
+            font-size: 16px;
+            color: #8e94a1;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        /* 圖片放置槽 */
+        .quiz-image {
+            width: 100%;
+            max-height: 260px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            border: 1px solid #26262b;
+            display: none; /* 預設隱藏，有圖片時會自動顯示 */
+        }
+
+        /* 題目內文 */
+        .question-text {
+            font-size: 19px;
+            line-height: 1.7;
+            margin-bottom: 28px;
+            color: #f1f5f9;
             text-align: left;
-            line-height: 1.4;
         }
 
+        /* 二選一選項按鈕 */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+            background-color: #202026;
+            border: 1px solid #2d2d35;
+            border-radius: 6px;
+            color: #cbd5e1;
+            font-size: 16px;
+            font-family: 'Noto Serif TC', serif;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
         .btn:hover {
-            background: rgba(142, 148, 242, 0.2);
+            background-color: #262630;
             border-color: #8e94f2;
-            transform: translateX(5px);
+            color: #ffffff;
+            transform: translateX(4px);
         }
 
-        /* 結局標題 */
+        /* 主動型中心按鈕（封面與結局用） */
+        .btn-center {
+            text-align: center;
+            background-color: #8e94f2;
+            color: #0f0f12;
+            font-weight: 700;
+            border: none;
+            margin: 20px auto 0;
+            max-width: 200px;
+        }
+        .btn-center:hover {
+            background-color: #767bc7;
+            color: #ffffff;
+            transform: scale(1.03);
+        }
+
+        /* 結局專用樣式 */
         .ending-title {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             color: #8e94f2;
             margin-bottom: 20px;
-        }
-
-        .ending-text {
-            font-size: 18px;
-            line-height: 1.8;
-            text-align: left;
-            color: #d1d1d1;
-        }
-
-        .restart-btn {
-            margin-top: 30px;
-            background: #8e94f2;
-            color: #1a1a1e;
-            font-weight: bold;
             text-align: center;
         }
-        
-        .restart-btn:hover {
-            background: #767bc7;
-            transform: scale(1.05);
-        }
-
-        /* 隱藏圖片容器 */
-        #quiz-image {
-            width: 100%;
-            height: 200px;
-            border-radius: 12px;
-            object-fit: cover;
-            margin-bottom: 20px;
-            display: none;
+        .ending-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #94a3b8;
+            text-align: justify;
+            margin-bottom: 30px;
         }
     </style>
 </head>
 <body>
 
-    <div id="formula-container">
-        V(r) = -g²(e^(-κr)/r)
-    </div>
-
-    <div class="game-container fade-in" id="game-ui">
-        <img id="quiz-image" src="" alt="Quiz Visual">
-        <h2 id="question-text">正在讀取時空檔案...</h2>
-        <div class="options-group" id="options-group"></div>
-    </div>
+    <div class="game-container show" id="game-card">
+        </div>
 
     <script>
-        // 遊戲劇本資料庫
-        const story = {
-            1: {
-                text: "你出生在富裕家庭裡過著優渥的生活，今天你的早餐想吃：",
+        // 劇情樹狀資料庫（對應你提供的分流結構）
+        const storyData = {
+            // 封面頁設定
+            "cover": {
+                isCover: true,
+                title: "湯川秀樹：探求者的思緒",
+                subtitle: "一個關於科學、文學與命運的分支問卷遊戲",
+                next: "1"
+            },
+            
+            // 共通主線
+            "1": {
+                text: "【第 1 題】你出生在富裕家庭裡過著優渥的生活，今天你的早餐想吃：",
+                image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80", // 這裡示範放圖片，不想要可以改成 ""
                 options: [
-                    { text: "A. 進進堂的剛烤好的麵包配上冰咖啡", next: 2 },
-                    { text: "B. 香氣四溢的土鍋炊飯配上紅味噌湯", next: 2 }
+                    { text: "A. 進進堂的麵包配上冰咖啡", next: "2" },
+                    { text: "B. 土鍋炊飯配上紅味噌湯", next: "2" }
                 ]
             },
-            2: {
-                text: "今天在學校唸書，發現書包裡還有空間，你打算帶著：",
+            "2": {
+                text: "【第 2 題】今天在學校唸書，發現書包裡還有空間，你打算帶著：",
+                image: "", // 若留空 "" 網頁會自動隱藏圖片框，保持極簡
                 options: [
-                    { text: "A. 最新一期泰晤士報", next: 3 },
-                    { text: "B. 一小盒和菓子", next: 3 }
+                    { text: "A. 最新一期泰晤士報", next: "3" },
+                    { text: "B. 一小盒和菓子", next: "3" }
                 ]
             },
-            3: {
-                text: "走在京都新風館的長廊上，你望向遠方的星空，此時你心中更嚮往的是？",
+            "3": {
+                text: "【第 3 題：命運分界】走在京都的長廊上，你看著遠方的天際線，內心深處最渴望探求的是？",
+                image: "",
                 options: [
-                    { text: "A. 物質世界背後的終極理型與規律", next: 4, flag: "physics" },
-                    { text: "B. 人與人之間感性交織的文學篇章", next: 4, flag: "humanities" }
+                    { text: "A. 物質世界底層的物理定理與真實", next: "4_main" }, // 往物理主線前進
+                    { text: "B. 人與人之間感性交織的文學篇章", next: "4_branch3" } // 觸發【3.分界往下】
                 ]
             },
-            4: {
-                text: "你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：",
+
+            // ==========================================
+            // PATH 1：物理學系主線 (Q4_main ~ Q6_main)
+            // ==========================================
+            "4_main": {
+                text: "【第 4 題】你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：",
+                image: "",
                 options: [
-                    { text: "A. 不理它", next: 5 },
-                    { text: "B. 有貓就要摸", next: 5 }
+                    { text: "A. 不理它", next: "5_main" },
+                    { text: "B. 有貓就要摸", next: "5_main" }
                 ]
             },
-            5: {
-                text: "放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：",
+            "5_main": {
+                text: "【第 5 題】你經歷了許多曲折及努力，最終考上京都帝國大學物理學系。放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：",
+                image: "",
                 options: [
-                    { text: "A. 濃郁醇香的抹茶", next: 6 },
-                    { text: "B. 夢幻的冰淇淋蘇打", next: 6 }
+                    { text: "A. 濃郁醇香的抹茶", next: "6_main" },
+                    { text: "B. 夢幻的冰淇淋蘇打", next: "6_main" }
                 ]
             },
-            6: {
-                text: "在選擇大學專業時，你選擇攻讀：",
+            "6_main": {
+                text: "【第 6 題：學術分界】深入研究量子與微觀物理後，你發現前方的學術道路出現了分歧：",
+                image: "",
                 options: [
-                    { text: "A. 京都帝國大學物理學系", next: 7, flag: "science" },
-                    { text: "B. 西洋文化學系及基礎現代文學系", next: 7, flag: "literature" }
+                    { text: "A. 堅持走純粹的理論物理推導", next: "7_main" }, // 往諾貝爾獎結局推進
+                    { text: "B. 轉向動手做實驗與應用科學", next: "7_branch6" } // 觸發【6.分界往下】
                 ]
             },
-            7: {
-                text: "今天實驗做到爆肝，進度落後，你打算：",
+
+            // PATH 1-A：純理論物理路線 (Q7_main ~ Q10_main)
+            "7_main": {
+                text: "【第 7 題】1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：",
+                image: "",
                 options: [
-                    { text: "A. 喝咖啡趕快把今天進度趕完", next: 8 },
-                    { text: "B. 直接睡實驗室了", next: 8 }
+                    { text: "A. 傳統日式白無垢及黑紋付羽織袴", next: "8_main" },
+                    { text: "B. 西式蕾絲白紗及三件式西裝", next: "8_main" }
                 ]
             },
-            8: {
-                text: "好不容易畢業了，站在人生的交叉路口，你打算：",
+            "8_main": {
+                text: "【第 8 題】你在32歲擔任擔任京都帝國大學教授。回家路上雨下很大，於是你打算：",
+                image: "",
                 options: [
-                    { text: "A. 投身機械工業", next: 9 },
-                    { text: "B. 繼續攻讀博士", next: 9 }
+                    { text: "A. 搭乘電車回家", next: "9_main" },
+                    { text: "B. 住在實驗室裡", next: "9_main" }
                 ]
             },
-            9: {
-                text: "1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：",
+            "9_main": {
+                text: "【第 9 題：終極分界】深夜的黑板前，你正在推導微觀粒子的核力公式，這時你突然想到了：",
+                image: "",
                 options: [
-                    { text: "A. 傳統日式白無垢及黑紋付羽織袴", next: 10, flag: "nobel" },
-                    { text: "B. 西式蕾絲白紗及三件式西裝", next: 10, flag: "peace" }
+                    { text: "A. 預言未知微觀粒子（介子）的存在", next: "10_mainA" }, // 導向結局 A
+                    { text: "B. 科學與世界和平之間的平衡關係", next: "10_mainB" }  // 導向結局 B
                 ]
             },
-            10: {
-                text: "你搭著路面電車回家，心裡在想著：",
+            "10_mainA": {
+                text: "【第 10 題】今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：",
+                image: "",
                 options: [
-                    { text: "A. 明天早餐要吃什麼", next: 11 },
-                    { text: "B. 等等要不要去喝個酒", next: 11 }
+                    { text: "A. 跟妻子去百貨公司逛衣服", next: "endingA" },
+                    { text: "B. 到鴨川河畔一起看夕陽", next: "endingA" }
                 ]
             },
-            11: {
-                text: "你在32歲擔任京都帝國大學教授。回家路上雨下很大，於是你打算：",
+            "10_mainB": {
+                text: "【第 10 題】今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：",
+                image: "",
                 options: [
-                    { text: "A. 搭乘電車回家", next: 12 },
-                    { text: "B. 睡在實驗室裡", next: 12 }
+                    { text: "A. 跟妻子去百貨公司逛衣服", next: "endingB" },
+                    { text: "B. 到鴨川河畔一起看夕陽", next: "endingB" }
                 ]
             },
-            12: {
-                text: "但今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：",
+
+            // ==========================================
+            // PATH 2：【6.分界往下】實作與爆肝實驗線
+            // ==========================================
+            "7_branch6": {
+                text: "【第 7 題】今天實驗做到爆肝，你打算：",
+                image: "",
                 options: [
-                    { text: "A. 跟妻子去百貨公司逛衣服", next: "result" },
-                    { text: "B. 到鴨川河畔一起看夕陽", next: "result" }
+                    { text: "A. 喝咖啡趕快把今天進度趕完", next: "8_branch6" },
+                    { text: "B. 直接睡實驗室了", next: "8_branch6" }
+                ]
+            },
+            "8_branch6": {
+                text: "【第 8 題】好不容易從京都帝國大學物理學系畢業了，你打算：",
+                image: "",
+                options: [
+                    { text: "A. 投身機械工業", next: "9_branch6" },
+                    { text: "B. 繼續攻讀博士", next: "9_branch6" }
+                ]
+            },
+            "9_branch6": {
+                text: "【第 9 題】1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：",
+                image: "",
+                options: [
+                    { text: "A. 傳統日式白無垢及黑紋付羽織袴", next: "10_branch6" },
+                    { text: "B. 西式蕾絲白紗及三件式西裝", next: "10_branch6" }
+                ]
+            },
+            "10_branch6": {
+                text: "【第 10 題】但今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：",
+                image: "",
+                options: [
+                    { text: "A. 跟妻子去百貨公司逛衣服", next: "endingC" },
+                    { text: "B. 到鴨川河畔一起看夕陽", next: "endingC" }
+                ]
+            },
+
+            // ==========================================
+            // PATH 3：【3.分界往下】人文與文學路線
+            // ==========================================
+            "4_branch3": {
+                text: "【第 4 題】你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：",
+                image: "",
+                options: [
+                    { text: "A. 不理它", next: "5_branch3" },
+                    { text: "B. 有貓就要摸", next: "5_branch3" }
+                ]
+            },
+            "5_branch3": {
+                text: "【第 5 題】放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：",
+                image: "",
+                options: [
+                    { text: "A. 濃郁醇香的抹茶", next: "6_branch3" },
+                    { text: "B. 夢幻的冰淇淋蘇打", next: "6_branch3" }
+                ]
+            },
+            "6_branch3": {
+                text: "【第 6 題】在選擇大學專業時，你選擇攻讀：",
+                image: "",
+                options: [
+                    { text: "A. 西洋文化學系", next: "7_branch3" },
+                    { text: "B. 基礎現代文學系", next: "7_branch3" }
+                ]
+            },
+            "7_branch3": {
+                text: "【第 7 題】你與心儀已久的女子結婚。在婚禮上，你們打算穿著：",
+                image: "",
+                options: [
+                    { text: "A. 傳統日式白無垢及黑紋付羽織袴", next: "8_branch3" },
+                    { text: "B. 西式蕾絲白紗及三件式西裝", next: "8_branch3" }
+                ]
+            },
+            "8_branch3": {
+                text: "【第 8 題】你從大學畢業，打算成為：",
+                image: "",
+                options: [
+                    { text: "A. 作家", next: "9_branch3" },
+                    { text: "B. 繼續鑽研，未來成為教授", next: "9_branch3" }
+                ]
+            },
+            "9_branch3": {
+                text: "【第 9 題】你搭著路面電車回家，心裡在想著：",
+                image: "",
+                options: [
+                    { text: "A. 明天早餐要吃什麼", next: "10_branch3" },
+                    { text: "B. 等等要不要去喝個酒", next: "10_branch3" }
+                ]
+            },
+            "10_branch3": {
+                text: "【第 10 題】今天特別閒，打算跟妻子來場說走就走的約會，你打算：",
+                image: "",
+                options: [
+                    { text: "A. 跟妻子去百貨公司逛衣服", next: "endingD" },
+                    { text: "B. 到鴨川河畔一起看夕陽", next: "endingD" }
                 ]
             }
         };
 
-        // 結局資料庫
-        const results = {
-            A: {
+        // 結局內容資料庫
+        const endings = {
+            "endingA": {
                 title: "【結局 A：介子之父，真理的先驅者】",
-                text: "你完美複製了湯川秀樹的人生。你在京都帝國大學深耕，於 1935 年提出了介子理論，並在 1949 年獲得了日本首個諾貝爾物理學獎。你的名字將與公式一同刻在科學黑板上，成為永恆。"
+                text: "你完美複製了湯川秀樹的傳奇人生。你在京都帝國大學深耕理論物理，於 1935 年提出了著名的介子理論，並在 1949 年獲得了日本首個諾貝爾物理學獎。你的名字將被永遠載入基礎物理科學的史冊中。"
             },
-            B: {
-                title: "【結局 B：靜謐的京都教授】",
-                text: "你選擇了學術，但也珍視家庭。你成為了一位受人尊敬的京都大學教授，雖然沒有諾貝爾獎的光環，但你與妻子澄子在鴨川畔度過了安穩的一生，為學界培育無數英才。"
+            "endingB": {
+                title: "【結局 B：知性教授與和平使者】",
+                text: "你走上了純粹理論物理學家的道路，但比起名譽，你更關注人類社會的未來。後半生你積極投身於反核與世界和平運動，成為受人景仰的京都大學名譽教授，在科學與人道主義之間找到了完美的支點。"
             },
-            C: {
-                title: "【結局 C：昭和浪漫的文豪】",
-                text: "你偏離了科學，走向了文學。你以溫潤的筆觸描寫京都的四季與人心，成為了昭和時代著名的文豪。你的文字像抹茶般濃郁，讓人們在混亂的年代找到了心靈的棲息地。"
+            "endingC": {
+                title: "【結局 C：開創時代的工業領袖】",
+                text: "你從物理學系畢業後，轉向了更具實作價值的精密機械與工業技術。你憑藉著紮實的基礎科學底蘊，帶領戰後日本的機械工業走向現代化，成為了備受敬重的工業界巨擘與應用科學導師。"
             },
-            D: {
-                title: "【結局 D：享受生活的京都士紳】",
-                text: "你對世界充滿好奇，但不願受拘束。你過著優渥且有質感的日式生活，偶爾研究機械，偶爾品味甜點。對你而言，幸福不在於公式的解答，而是在進進堂喝咖啡的每個當下。"
+            "endingD": {
+                title: "【結局 D：昭和浪漫的京都文豪】",
+                text: "你徹底離開了冷冰冰的公式，走向了充滿溫度的感性世界。你以細膩溫潤的筆觸描寫京都的四季、古都的街道與幽微的人心，成為了昭和時代著名的傳奇文豪。對你而言，生活與美學才是終極的真理。"
             }
         };
 
-        let currentStep = 1;
-        let flags = [];
+        let currentNode = "cover"; // 預設從封面頁開始
 
-        function renderStep() {
-            const ui = document.getElementById('game-ui');
-            ui.classList.add('fade-out');
-
-            setTimeout(() => {
-                const data = story[currentStep];
-                document.getElementById('question-text').innerText = data.text;
-                
-                const btnGroup = document.getElementById('options-group');
-                btnGroup.innerHTML = '';
-
-                data.options.forEach(opt => {
-                    const b = document.createElement('button');
-                    b.className = 'btn';
-                    b.innerText = opt.text;
-                    b.onclick = () => {
-                        if (opt.flag) flags.push(opt.flag);
-                        
-                        if (opt.next === "result") {
-                            showResult();
-                        } else {
-                            currentStep = opt.next;
-                            renderStep();
-                        }
-                    };
-                    btnGroup.appendChild(b);
-                });
-
-                ui.classList.remove('fade-out');
-                ui.classList.add('fade-in');
-            }, 400);
-        }
-
-        function showResult() {
-            const ui = document.getElementById('game-ui');
-            ui.classList.add('fade-out');
+        function renderGame() {
+            const container = document.getElementById('game-card');
+            
+            // 觸發滑動淡出效果
+            container.classList.remove('show');
+            container.classList.add('fade');
 
             setTimeout(() => {
-                let res;
-                // 後台條件判定：根據第 3、6、9 題的隱藏 Flag
-                if (flags.includes("physics") && flags.includes("science") && flags.includes("nobel")) {
-                    res = results.A;
-                } else if (flags.includes("physics") || flags.includes("science")) {
-                    res = results.B;
-                } else if (flags.includes("literature")) {
-                    res = results.C;
-                } else {
-                    res = results.D;
+                // 1. 判斷是否為結局頁
+                if (endings[currentNode]) {
+                    const end = endings[currentNode];
+                    container.innerHTML = `
+                        <div class="ending-title">${end.title}</div>
+                        <div class="ending-text">${end.text}</div>
+                        <button class="btn btn-center" onclick="location.reload()">重新探索人生</button>
+                    `;
+                } 
+                // 2. 判斷是否為封面頁
+                else if (storyData[currentNode] && storyData[currentNode].isCover) {
+                    const cover = storyData[currentNode];
+                    container.innerHTML = `
+                        <div class="cover-view">
+                            <div class="cover-title">${cover.title}</div>
+                            <div class="cover-subtitle">${cover.subtitle}</div>
+                            <button class="btn btn-center" onclick="changeNode('${cover.next}')">開始旅程</button>
+                        </div>
+                    `;
+                }
+                // 3. 一般題目頁
+                else if (storyData[currentNode]) {
+                    const node = storyData[currentNode];
+                    
+                    // 建立圖片結構
+                    let imgHtml = `<img id="quiz-img" class="quiz-image" src="${node.image}" alt="遊戲畫面">`;
+                    
+                    // 建立選項按鈕結構
+                    let optionsHtml = "";
+                    node.options.forEach(opt => {
+                        optionsHtml += `<button class="btn" onclick="changeNode('${opt.next}')">${opt.text}</button>`;
+                    });
+
+                    container.innerHTML = `
+                        ${imgHtml}
+                        <div class="question-text">${node.text}</div>
+                        <div>${optionsHtml}</div>
+                    `;
+
+                    // 如果這一題有設定圖片網址，就將其顯示，否則維持隱藏
+                    const imgEl = document.getElementById('quiz-img');
+                    if (node.image && node.image !== "") {
+                        imgEl.style.display = "block";
+                    } else {
+                        imgEl.style.display = "none";
+                    }
                 }
 
-                ui.innerHTML = `
-                    <div class="ending-title">${res.title}</div>
-                    <div class="ending-text">${res.text}</div>
-                    <button class="btn" style="text-align:center; background:#8e94f2; color:#1a1a1e; font-weight:bold;" onclick="location.reload()">重新探索人生</button>
-                `;
-                ui.classList.remove('fade-out');
-                ui.classList.add('fade-in');
-            }, 400);
+                // 換完內文後，觸發滑動淡入
+                container.classList.remove('fade');
+                container.classList.add('show');
+            }, 300); // 300毫秒的轉場緩衝
         }
 
-        window.onload = renderStep;
+        // 切換題目的核心函數
+        function changeNode(nextNode) {
+            currentNode = nextNode;
+            renderGame();
+        }
+
+        // 初始化載入
+        window.onload = renderGame;
     </script>
 </body>
 </html>
