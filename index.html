@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神祕的分支問卷遊戲</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #1a1a24;
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .game-container {
+            background-color: #242432;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 { color: #f7fafc; margin-bottom: 25px; line-height: 1.5; font-size: 20px; text-align: left; }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            background-color: #3a3a4c;
+            color: #edf2f7;
+            border: 1px solid #4a4a62;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            padding-left: 20px;
+        }
+        .btn:hover { 
+            background-color: #4c51bf; 
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .ending-title { font-size: 24px; color: #f6ad55; font-weight: bold; margin-bottom: 20px; }
+        .ending-text { font-size: 17px; color: #cbd5e0; margin: 20px 0; line-height: 1.7; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div id="game-box">
+        <h2 id="question">遊戲載入中...</h2>
+        <div id="options"></div>
+    </div>
+</div>
+
+<script>
+    // 核心劇情路由資料庫
+    const storyData = {
+        // ==========================================
+        // 第一階段：第 1 ~ 4 題（主線共通）
+        // ==========================================
+        1: {
+            question: "【第 1 題】你在一個陌生的房間醒來，四周異常安靜，只有某個角落隱約傳來極其微弱的高頻嗡嗡聲。你會怎麼做？",
+            options: [
+                { text: "試著找出聲音的來源", next: 2 },
+                { text: "無視聲音，直接尋找出口", next: 2 }
+            ]
+        },
+        2: {
+            question: "【第 2 題】在桌上你發現了一張寫滿複雜幾何證明與微積分公式的草稿紙，背面隱約印著一個舊遊戲的標題『Listen』。此時你注意到旁邊有一隻左手專用的剪刀，你會？",
+            options: [
+                { text: "把草稿紙收進口袋，撿起剪刀防身", next: 3 },
+                { text: "覺得這些東西毫無關聯，不予理會", next: 3 }
+            ]
+        },
+        3: {
+            question: "【第 3 題】推開門走到走廊，迎面飛來兩隻漂亮的太陽鳥（鸚鵡），牠們一公一母，歪著頭一前一後地在排隊，似乎在等待你親親牠們。你的反應是：",
+            options: [
+                { text: "親親牠們，並溫柔地摸摸牠們的臉頰", next: 4 },
+                { text: "感到驚嚇，揮手企圖把牠們趕走", next: 4 }
+            ]
+        },
+        4: {
+            question: "【第 4 題】通過走廊後，你來到了一扇沉重的鐵門前，門鎖上插著一把沾滿灰塵的鑰匙。這似乎是第一個分水嶺：",
+            options: [
+                { text: "深呼吸，果斷轉動鑰匙開門", next: 5 }
+            ]
+        },
+
+        // ==========================================
+        // 【關鍵分支點 A】第 5 題
+        // ==========================================
+        5: {
+            question: "【第 5 題】門後是一片無垠的刺眼白光。空中傳來飄渺的聲音，詢問你是否願意卸下現實世界的一切重擔，留在這個純白無瑕的庇護所中？",
+            options: [
+                { text: "「我累了，我想留在這個平靜的世界。」（選此項將鎖定結局 A）", next: "5A_1" },
+                { text: "「這不是真實的，我要繼續前行尋找真相！」（選此項將繼續主線）", next: 6 }
+            ]
+        },
+
+        // 結局 A 的 3 題煙霧彈（畫面上偽裝成第 6, 7, 8 題）
+        "5A_1": {
+            question: "【第 6 題】你走進白光，四周的環境開始融化。一個溫暖的影子向你走來，伸出了手。你決定：",
+            options: [
+                { text: "毫不猶豫地握住對方的手", next: "5A_2" },
+                { text: "保持警惕，自己繼續往前走", next: "5A_2" }
+            ]
+        },
+        "5A_2": {
+            question: "【第 7 題】耳邊的高頻雜音徹底消失了，取而代之的是極度舒適的寂靜。你感覺到自己的記憶似乎在慢慢變淡，這時你突然想起了家裡的寵物：",
+            options: [
+                { text: "試著努力記住牠們的模樣", next: "5A_3" },
+                { text: "放棄掙扎，任由記憶隨風逝去", next: "5A_3" }
+            ]
+        },
+        "5A_3": {
+            question: "【第 8 題】意識越來越輕，你感覺自己正在與這個空間融為一體。你最後閉上眼前的想法是：",
+            options: [
+                { text: "這就是真正的解脫吧...", next: "endingA" }
+            ]
+        },
+
+        // ==========================================
+        // 第二階段：第 6 ~ 9 題（主線續行）
+        // ==========================================
+        6: {
+            question: "【第 6 題】你穿過白光，眼前豁然開朗，變成了一座巨大的荒漠。天空中掛著兩個太陽，你決定往哪個方向前進？",
+            options: [
+                { text: "跟隨直覺，一路向北", next: 7 },
+                { text: "尋找地上的足跡，往南前進", next: 7 }
+            ]
+        },
+        7: {
+            question: "【第 7 題】荒漠中央竟然有一座老舊的英式酒館。走進去後，調酒師一言不發，用左手流暢地為你推過來一杯淡藍色的雞尾酒，杯緣正微微共振：",
+            options: [
+                { text: "接過酒杯一飲而盡，感受力量湧現", next: 8 },
+                { text: "禮貌拒絕，只向他詢問離開的路", next: 8 }
+            ]
+        },
+        8: {
+            question: "【第 8 題】調酒師指向酒館後方的一條密道。你走進去後，周圍的牆壁上開始出現流動的矩陣代碼。此時你的思維變得異常清晰：",
+            options: [
+                { text: "試圖找出代碼中的數學規律", next: 9 },
+                { text: "不管代碼，加快腳步通過密道", next: 9 }
+            ]
+        },
+        9: {
+            question: "【第 9 題】密道的盡頭是一座金碧輝煌的黃金大門，門上刻著黑洞引力與事件視界的幾何圖形。你推開了大門：",
+            options: [
+                { text: "邁開步伐，踏入其中", next: 10 }
+            ]
+        },
+
+        // ==========================================
+        // 【關鍵分支點 B】第 10 題
+        // ==========================================
+        10: {
+            question: "// 【第 10 題】黃金大門後是一座無邊無際的圖書館。桌上放著一本打開的《宇宙定理與終極機率》，空中傳來聲音：「渴望真理的旅人，只要在書上簽名，你將獲得全知全能的智慧，代價是永遠留在此處。」",
+            options: [
+                { text: "「智慧高於一切，我願意留下。」（選此項將鎖定結局 B）", next: "10B_1" },
+                { text: "「知識只是工具，我拒絕成為囚徒！」（選此項將繼續主線）", next: 11 }
+            ]
+        },
+
+        // 結局 B 的 3 題煙霧彈（畫面上偽裝成第 11, 12, 13 題）
+        "10B_1": {
+            question: "【第 11 題】當你簽下名字，無數關於量子力學與宇宙結構的真理瞬間湧入腦海。這時，管理員遞給你一把羽毛筆，希望你開始抄寫：",
+            options: [
+                { text: "興奮地接過筆，開始記錄真理", next: "10B_2" },
+                { text: "感到大腦快被資訊撐爆，痛苦地閉眼", next: "10B_2" }
+            ]
+        },
+        "10B_2": {
+            question: "【第 12 題】在漫長的時間中，你解開了一個又一個被視為不可能的數學證明。但在書庫深處，你突然看到一本記載著你過去現實人生的傳記：",
+            options: [
+                { text: "翻開它，回顧自己最初是誰", next: "10B_3" },
+                { text: "把它放回書架，繼續研究高深理論", next: "10B_3" }
+            ]
+        },
+        "10B_3": {
+            question: "【第 13 題】你發現自己的身體已經逐漸變成了書頁般的材質，墨水在你的血管裡流動。你敲了敲桌子，發出了沉悶的聲音。你此時的想法是：",
+            options: [
+                { text: "朝聞道，夕死可矣...", next: "endingB" }
+            ]
+        },
+
+        // ==========================================
+        // 第三階段：第 11 ~ 14 題（主線續行）
+        // ==========================================
+        11: {
+            question: "【第 11 題】你拒絕了圖書館的誘惑。四周的空間突然坍塌，重力消失，你發現自己漫步在群星閃爍的太空之中。前方出現了神祕的蟲洞：",
+            options: [
+                { text: "任由身體順著重力波飄進蟲洞", next: 12 },
+                { text: "手腳並用，試圖游向旁邊的星際塵埃", next: 12 }
+            ]
+        },
+        12: {
+            question: "【第 12 題】穿過蟲洞後，你看到遠方有一個巨大的黑洞，強大的引力正在拉扯著你。根據你腦中的物理知識，這可能觸發黑洞熱力學效應。你決定：",
+            options: [
+                { text: "嘗試利用引力彈弓效應加速飛離", next: 13 },
+                { text: "放棄抵抗，順著視界線墜入黑洞中心", next: 13 }
+            ]
+        },
+        13: {
+            question: "【第 13 題】有驚無險地飛越黑洞後，眼前的時空裂開了一道縫隙，隱約看得到像是遊戲後台的源始碼與數據結構。你感受到強烈的違和感：",
+            options: [
+                { text: "把手伸進裂縫中，試圖撕開這個世界", next: 14 },
+                { text: "保持冷靜，尋找更穩固的出口結構", next: 14 }
+            ]
+        },
+        14: {
+            question: "【第 14 題】跨過裂縫後，你來到了一座宏偉的「真理之門」前。這扇門沒有鎖，只需輕輕一推。你深呼吸，做好了面對一切的準備：",
+            options: [
+                { text: "用力推開最後的大門", next: 15 }
+            ]
+        },
+
+        // ==========================================
+        // 【最終關鍵點】第 15 題（決定 C 還是 D）
+        // ==========================================
+        15: {
+            question: "【第 15 題】門後站著這個世界的「核心意志」。祂看著一路堅持到這裡的你，緩緩開口：「最後的旅人啊，這個世界系統即將崩潰。如果你願意『格式化』你所有的記憶作為代價，世界就能重獲新生。你願意嗎？」",
+            options: [
+                { text: "「我願意，為了大局奉獻自我。」（選此項將鎖定結局 C）", next: "15C_1" },
+                { text: "「我不願意！我的記憶才是我的本質！」（選此項將鎖定結局 D）", next: "15D_1" }
+            ]
+        },
+
+        // 結局 C 的 3 題煙霧彈（畫面上偽裝成第 16, 17, 18 題）
+        "15C_1": {
+            question: "【第 16 題】系統開始抽離你的記憶。無數過去的畫面像跑馬燈一樣在眼前閃過，你看到那些解到一半的微積分題目、球場上奔跑的身影、還有家裡等著你回家的寵物。你現在的心情是：",
+            options: [
+                { text: "感到萬分不捨，流下最後一滴眼淚", next: "15C_2" },
+                { text: "閉上雙眼，平靜地接受這一切", next: "15C_2" }
+            ]
+        },
+        "15C_2": {
+            question: "【第 17 題】數據流化作無數的光芒將你包裹，世界的裂痕在你的記憶碎片填補下，正在慢慢修補、復原。你感覺到自己的靈魂變得無比輕盈：",
+            options: [
+                { text: "徹底融入世界核心之中", next: "15C_3" }
+            ]
+        },
+        "15C_3": {
+            question: "【第 18 題】最後一片核心記憶也消逝了。整個系統重新啟動，世界迎來了永久的和平。你覺得這一切值得嗎？",
+            options: [
+                { text: "值得。系統重置中...", next: "endingC" }
+            ]
+        },
+
+        // 結局 D 的 3 題煙霧彈（畫面上偽裝成第 16, 17, 18 題）
+        "15D_1": {
+            question: "【第 16 題】當你大喊「我不願意」時，核心意志的臉色大變。整個空間開始劇烈震動，紅色的警報代碼鋪天蓋地而來。系統認定你是病毒，試圖抹除你！你決定：",
+            options: [
+                { text: "奮力揮動拳頭，砸向周圍的代碼牆", next: "15D_2" },
+                { text: "尋找防禦漏洞，試圖駭入系統反擊", next: "15D_2" }
+            ]
+        },
+        "15D_2": {
+            question: "【第 17 題】你成功打破了空間的屏障，看到了代碼背後的虛無。耳邊突然傳來一陣陣極度熟悉、只有你聽得到的高頻電子音，指引著你前進：",
+            options: [
+                { text: "朝著那個高頻聲音的方向奮力衝過去", next: "15D_3" }
+            ]
+        },
+        "15D_3": {
+            question: "【第 18 題】眼前的世界開始片片崩解，虛假的虛擬界線徹底碎裂。你伸出雙手，迎向最後那道未知的裂縫：",
+            options: [
+                { text: "打破虛無，回歸自我！", next: "endingD" }
+            ]
+        }
+    };
+
+    // 結局內容資料庫
+    const endings = {
+        "endingA": {
+            title: "【結局 A：安穩的幻境】",
+            text: "你在冒險的早期選擇了停留。你留在了那個舒適、沒有雜音且無憂無慮的白光世界裡。雖然你付出了代價，忘記了自己是誰、也忘記了曾經熱愛的排球與寵物，但你在這裡過著與世無爭的平靜生活。這或許也是一種幸福吧？"
+        },
+        "endingB": {
+            title: "【結局 B：真理的囚徒】",
+            text: "你在旅途中被無盡的宇宙真理所吸引。你成為了永恆圖書館的守護者，日夜與高深的幾何定理、物理公式、黑洞模型為伴。你獲得了夢寐以求的全知全能智慧，解開了無數宇宙謎題，但你再也沒有離開過這個座位，成為了真理最孤獨的囚徒。"
+        },
+        "endingC": {
+            title: "【結局 C：救世的無名神祇】",
+            text: "你堅持到了最後，卻在終點選擇了自我犧牲。你的記憶化作最純淨的代碼，修補了世界的致命崩潰，拯救了無數生命。世界迎來了新生，人們為你建立了一座無名的雕像，而你已經成為了世界本身的一部分，雖然你已經不記得自己的名字了。"
+        },
+        "endingD": {
+            title: "【結局 D：自由的覺醒者】",
+            text: "你拒絕了所有的誘惑，對抗了核心意志的抹除，堅持捍衛自己的記憶與本質！你成功打破了這個問卷遊戲的框架。你猛地張開雙眼，發現自己正坐在電腦前，手裡還握著滑鼠，四周是熟悉的房間。你贏了，你打破了虛擬，回到了真正自由的現實世界！"
+        }
+    };
+
+    let currentNode = 1; // 從第 1 題開始
+
+    function renderGame() {
+        const gameBox = document.getElementById('game-box');
+        
+        // 判斷是否為結局
+        if (endings[currentNode]) {
+            const ending = endings[currentNode];
+            gameBox.innerHTML = `
+                <div class="ending-title">${ending.title}</div>
+                <div class="ending-text">${ending.text}</div>
+                <button class="btn" style="text-align:center; padding-left:0;" onclick="restartGame()">重新挑戰（探索其他分支）</button>
+            `;
+        } else if (storyData[currentNode]) {
+            // 顯示題目與選項
+            const stage = storyData[currentNode];
+            document.getElementById('question').innerText = stage.question;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            stage.options.forEach(option => {
+                const button = document.createElement('button');
+                button.innerText = option.text;
+                button.classList.add('btn');
+                button.onclick = () => {
+                    currentNode = option.next; // 移至下一個節點
+                    renderGame();
+                };
+                optionsContainer.appendChild(button);
+            });
+        }
+    }
+
+    function restartGame() {
+        currentNode = 1;
+        renderGame();
+    }
+
+    // 啟動遊戲
+    renderGame();
+</script>
+
+</body>
+</html>
