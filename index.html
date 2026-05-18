@@ -5,10 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>質疑湯川秀樹 理解湯川秀樹 成為湯川秀樹 Pro</title>
     <style>
-        /* 全域樣式與漸層背景 */
+       /* 替換原本的 body 樣式 */
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #141419 0%, #1c1c24 100%);
+            
+            /* 深夜黑板風格 (Dark Chalkboard) 
+               使用純 CSS 模擬石板黑板的質感
+            */
+            background-color: #1a1a1f; /* 深色黑板基底 */
+            background-image: 
+                /* 1. 模擬極細微的粉塵噪點 */
+                radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                /* 2. 模擬黑板上淡淡的粉筆擦拭痕跡 */
+                linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px);
+            background-size: 100px 100px, 300px 300px; /* 控制噪點與滑痕的密度 */
+
             color: #e2e8f0;
             display: flex;
             justify-content: center;
@@ -19,19 +30,20 @@
             box-sizing: border-box;
         }
 
-        /* 遊戲主卡片 */
+        /* 確保問卷卡片有微微的毛玻璃效果，與黑板更融合 */
         .game-container {
-            background-color: #242432;
+            background-color: rgba(36, 36, 50, 0.9); /* 讓卡片帶一點透明度 */
+            backdrop-filter: blur(5px); /* 毛玻璃效果 */
             padding: 35px;
             border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(99, 102, 241, 0.1);
             max-width: 550px;
             width: 100%;
             text-align: center;
-            border: 1px solid #2d2d3d;
+            border: 1px solid rgba(255, 255, 255, 0.05); /* 卡片邊框也要很淡 */
             transition: all 0.3s ease;
         }
-
+        
         /* 轉場動畫：淡入淡出效果 */
         .fade-in {
             animation: fadeIn 0.4s ease forwards;
@@ -130,8 +142,8 @@
             question: "【第 2 題】今天在學校念書，發現書包裡還有空間，你打算帶著",
             image: "", // 留空代表這一題不放照片
             options: [
-                { text: "把草稿紙收進口袋，撿起剪刀防身", next: 3 },
-                { text: "覺得這些東西毫無關聯，不予理會", next: 3 }
+                { text: "A, 最新一期泰晤士報", next: 3 },
+                { text: "B, 一小盒和菓子", next: 3 }
             ]
         },
         3: {
@@ -143,11 +155,11 @@
             ]
         },
         4: {
-            question: "【第 4 題】通過走廊後，你來到了一扇沉重的鐵門前，門鎖上插著一把沾滿灰塵的鑰匙。這似乎是第一個分水嶺：",
+            question: "【第 4 題】你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：",
             image: "",
             options: [
-                { text: "深呼吸，果斷轉動鑰匙開門進去", next: 5 },
-                { text: "先敲敲門，確認裡面有沒有動靜再開門", next: 5 } // 補足第 2 選項
+                { text: "A, 不理它", next: 5 },
+                { text: "B, 有貓就要摸", next: 5 } // 補足第 2 選項
             ]
         },
 
