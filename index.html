@@ -57,7 +57,7 @@
             margin-bottom: 40px;
         }
 
-        /* 圖片放置槽 */
+        /* 圖片與內嵌框架放置槽 */
         .quiz-image {
             width: 100%;
             max-height: 260px;
@@ -65,7 +65,7 @@
             border-radius: 6px;
             margin-bottom: 24px;
             border: 1px solid #26262b;
-            display: none; /* 預設隱藏，有圖片時會自動顯示 */
+            display: none; /* 預設隱藏 */
         }
 
         /* 題目內文 */
@@ -136,24 +136,20 @@
 </head>
 <body>
 
-    <div class="game-container show" id="game-card">
-        </div>
+    <div class="game-container show" id="game-card"></div>
 
     <script>
-        // 劇情樹狀資料庫（對應你提供的分流結構）
+        // 劇情樹狀資料庫
         const storyData = {
-            // 封面頁設定
             "cover": {
                 isCover: true,
                 title: "湯川秀樹：探求者的思緒",
                 subtitle: "一個關於科學、文學與命運的分支問卷遊戲",
                 next: "1"
             },
-            
-            // 共通主線
             "1": {
                 text: "你出生在富裕家庭裡過著優渥的生活，今天你的早餐想吃：",
-                image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80", // 這裡示範放圖片，不想要可以改成 ""
+                image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80",
                 options: [
                     { text: "A. 進進堂的麵包配上冰咖啡", next: "2" },
                     { text: "B. 土鍋炊飯配上紅味噌湯", next: "2" }
@@ -161,7 +157,7 @@
             },
             "2": {
                 text: "今天在學校唸書，發現書包裡還有空間，你打算帶著：",
-                image: "", // 若留空 "" 網頁會自動隱藏圖片框，保持極簡
+                image: "",
                 options: [
                     { text: "A. 最新一期泰晤士報", next: "3" },
                     { text: "B. 一小盒和菓子", next: "3" }
@@ -171,14 +167,10 @@
                 text: "走在京都的長廊上，你看著遠方的天際線，內心深處最渴望探求的是？",
                 image: "",
                 options: [
-                    { text: "A. 物質世界底層的物理定理與真實", next: "4_main" }, // 往物理主線前進
-                    { text: "B. 人與人之間感性交織的文學篇章", next: "4_branch3" } // 觸發【3.分界往下】
+                    { text: "A. 物質世界底層的物理定理與真實", next: "4_main" },
+                    { text: "B. 人與人之間感性交織的文學篇章", next: "4_branch3" }
                 ]
             },
-
-            // ==========================================
-            // PATH 1：物理學系主線 (Q4_main ~ Q6_main)
-            // ==========================================
             "4_main": {
                 text: "你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：",
                 image: "",
@@ -199,12 +191,10 @@
                 text: "深入研究量子與微觀物理後，你發現前方的學術道路出現了分歧：",
                 image: "",
                 options: [
-                    { text: "A. 堅持走純粹的理論物理推導", next: "7_main" }, // 往諾貝爾獎結局推進
-                    { text: "B. 轉向動手做實驗與應用科學", next: "7_branch6" } // 觸發【6.分界往下】
+                    { text: "A. 堅持走純粹的理論物理推導", next: "7_main" },
+                    { text: "B. 轉向動手做實驗與應用科學", next: "7_branch6" }
                 ]
             },
-
-            // PATH 1-A：純理論物理路線 (Q7_main ~ Q10_main)
             "7_main": {
                 text: "1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：",
                 image: "",
@@ -225,8 +215,8 @@
                 text: "深夜的黑板前，你正在推導微觀粒子的核力公式，這時你突然想到了：",
                 image: "",
                 options: [
-                    { text: "A. 預言未知微觀粒子（介子）的存在", next: "10_mainA" }, // 導向結局 A
-                    { text: "B. 科學與世界和平之間的平衡關係", next: "10_mainB" }  // 導向結局 B
+                    { text: "A. 預言未知微觀粒子（介子）的存在", next: "10_mainA" },
+                    { text: "B. 科學與世界和平之間的平衡關係", next: "10_mainB" }
                 ]
             },
             "10_mainA": {
@@ -245,10 +235,6 @@
                     { text: "B. 到鴨川河畔一起看夕陽", next: "endingB" }
                 ]
             },
-
-            // ==========================================
-            // PATH 2：【6.分界往下】實作與爆肝實驗線
-            // ==========================================
             "7_branch6": {
                 text: "今天實驗做到爆肝，你打算：",
                 image: "",
@@ -281,10 +267,6 @@
                     { text: "B. 到鴨川河畔一起看夕陽", next: "endingC" }
                 ]
             },
-
-            // ==========================================
-            // PATH 3：【3.分界往下】人文與文學路線
-            // ==========================================
             "4_branch3": {
                 text: "你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：",
                 image: "",
@@ -347,48 +329,44 @@
         const endings = {
             "endingA": {
                 title: "【結局 A：介子之父，真理的先驅者】",
-                image:"S__81813525.jpg",
+                image: "S__81813525.jpg",
                 text: "你完美複製了湯川秀樹的傳奇人生。你在京都帝國大學深耕理論物理，於 1935 年提出了著名的介子理論，並在 1949 年獲得了日本首個諾貝爾物理學獎。你的名字將被永遠載入基礎物理科學的史冊中。"
             },
             "endingB": {
                 title: "【結局 B：知性教授與和平使者】",
-                image:"S__81813524.jpg",
+                image: "S__81813524.jpg",
                 text: "你走上了純粹理論物理學家的道路，但比起名譽，你更關注人類社會的未來。後半生你積極投身於反核與世界和平運動，成為受人景仰的京都大學名譽教授，在科學與人道主義之間找到了完美的支點。"
             },
             "endingC": {
                 title: "【結局 C：開創時代的工業領袖】",
-                image:"S__81813523.jpg",
-                text: "你從物理學系畢業後，轉向了更具實作價值的精密機械與工業技術。你憑藉著紮實的基礎科學底蘊，帶領戰後日本的機械工業走向現代化，成為了備受敬重的工業界巨擘與應用科學導師。"
+                image: "S__81813523.jpg",
+                text: "you你從物理學系畢業後，轉向了更具實作價值的精密機械與工業技術。你憑藉著紮實的基礎科學底蘊，帶領戰後日本的機械工業走向現代化，成為了備受敬重的工業界巨擘與應用科學導師。"
             },
             "endingD": {
                 title: "【結局 D：昭和浪漫的京都文豪】",
-                image:"S__81813522.jpg",
+                image: "S__81813522.jpg",
                 text: "你徹底離開了冷冰冰的公式，走向了充滿溫度的感性世界。你以細膩溫潤的筆觸描寫京都的四季、古都的街道與幽微的人心，成為了昭和時代著名的傳奇文豪。對你而言，生活與美學才是終極的真理。"
             }
         };
 
-        let currentNode = "cover"; // 預設從封面頁開始
+        let currentNode = "cover";
 
         function renderGame() {
             const container = document.getElementById('game-card');
-            
-            // 觸發滑動淡出效果
             container.classList.remove('show');
             container.classList.add('fade');
 
             setTimeout(() => {
-// 1. 判斷是否為結局頁（修改後：支援秀出結局照片）
+                // 1. 結局頁渲染
                 if (endings[currentNode]) {
                     const end = endings[currentNode];
+                    let imgHtml = "";
                     
-                    // 建立結局圖片結構
-                   // 修改後的結構：如果結尾是 .pdf，就用 iframe 讀取，否則用一般圖片標籤
-let imgHtml = "";
-if (end.image && end.image.toLowerCase().endsWith('.pdf')) {
-    imgHtml = `<iframe id="quiz-pdf" class="quiz-image" src="${end.image}" style="width:100%; height:260px; border:none;"></iframe>`;
-} else {
-    imgHtml = `<img id="quiz-img" class="quiz-image" src="${end.image}" alt="結局畫面">`;
-}
+                    if (end.image && end.image.toLowerCase().endsWith('.pdf')) {
+                        imgHtml = `<iframe class="quiz-image" src="${end.image}" style="width:100%; height:260px; border:none; display:block;"></iframe>`;
+                    } else if (end.image && end.image !== "") {
+                        imgHtml = `<img class="quiz-image" src="${end.image}" alt="結局畫面" style="display:block;">`;
+                    }
                     
                     container.innerHTML = `
                         ${imgHtml}
@@ -396,16 +374,8 @@ if (end.image && end.image.toLowerCase().endsWith('.pdf')) {
                         <div class="ending-text">${end.text}</div>
                         <button class="btn btn-center" onclick="location.reload()">重新探索人生</button>
                     `;
-
-                    // 檢查結局是否有照片，有的話就大膽秀出來
-                    const imgEl = document.getElementById('quiz-img');
-                    if (end.image && end.image !== "") {
-                        imgEl.style.display = "block";
-                    } else {
-                        imgEl.style.display = "none";
-                    }
-                }
-                // 2. 判斷是否為封面頁
+                } 
+                // 2. 封面頁渲染
                 else if (storyData[currentNode] && storyData[currentNode].isCover) {
                     const cover = storyData[currentNode];
                     container.innerHTML = `
@@ -416,14 +386,15 @@ if (end.image && end.image.toLowerCase().endsWith('.pdf')) {
                         </div>
                     `;
                 }
-                // 3. 一般題目頁
+                // 3. 一般題目頁渲染
                 else if (storyData[currentNode]) {
                     const node = storyData[currentNode];
+                    let imgHtml = "";
                     
-                    // 建立圖片結構
-                    let imgHtml = `<img id="quiz-img" class="quiz-image" src="${node.image}" alt="遊戲畫面">`;
-                    
-                    // 建立選項按鈕結構
+                    if (node.image && node.image !== "") {
+                        imgHtml = `<img class="quiz-image" src="${node.image}" alt="遊戲畫面" style="display:block;">`;
+                    }
+
                     let optionsHtml = "";
                     node.options.forEach(opt => {
                         optionsHtml += `<button class="btn" onclick="changeNode('${opt.next}')">${opt.text}</button>`;
@@ -434,29 +405,18 @@ if (end.image && end.image.toLowerCase().endsWith('.pdf')) {
                         <div class="question-text">${node.text}</div>
                         <div>${optionsHtml}</div>
                     `;
-
-                    // 如果這一題有設定圖片網址，就將其顯示，否則維持隱藏
-                    const imgEl = document.getElementById('quiz-img');
-                    if (node.image && node.image !== "") {
-                        imgEl.style.display = "block";
-                    } else {
-                        imgEl.style.display = "none";
-                    }
                 }
 
-                // 換完內文後，觸發滑動淡入
                 container.classList.remove('fade');
                 container.classList.add('show');
-            }, 300); // 300毫秒的轉場緩衝
+            }, 300);
         }
 
-        // 切換題目的核心函數
         function changeNode(nextNode) {
             currentNode = nextNode;
             renderGame();
         }
 
-        // 初始化載入
         window.onload = renderGame;
     </script>
 </body>
