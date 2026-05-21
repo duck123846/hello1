@@ -347,6 +347,7 @@
         const endings = {
             "endingA": {
                 title: "【結局 A：介子之父，真理的先驅者】",
+                image:
                 text: "你完美複製了湯川秀樹的傳奇人生。你在京都帝國大學深耕理論物理，於 1935 年提出了著名的介子理論，並在 1949 年獲得了日本首個諾貝爾物理學獎。你的名字將被永遠載入基礎物理科學的史冊中。"
             },
             "endingB": {
@@ -373,15 +374,34 @@
             container.classList.add('fade');
 
             setTimeout(() => {
-                // 1. 判斷是否為結局頁
+// 1. 判斷是否為結局頁（修改後：支援秀出結局照片）
                 if (endings[currentNode]) {
                     const end = endings[currentNode];
+                    
+                    // 建立結局圖片結構
+                   // 修改後的結構：如果結尾是 .pdf，就用 iframe 讀取，否則用一般圖片標籤
+let imgHtml = "";
+if (end.image && end.image.toLowerCase().endsWith('.pdf')) {
+    imgHtml = `<iframe id="quiz-pdf" class="quiz-image" src="${end.image}" style="width:100%; height:260px; border:none;"></iframe>`;
+} else {
+    imgHtml = `<img id="quiz-img" class="quiz-image" src="${end.image}" alt="結局畫面">`;
+}
+                    
                     container.innerHTML = `
+                        ${imgHtml}
                         <div class="ending-title">${end.title}</div>
                         <div class="ending-text">${end.text}</div>
                         <button class="btn btn-center" onclick="location.reload()">重新探索人生</button>
                     `;
-                } 
+
+                    // 檢查結局是否有照片，有的話就大膽秀出來
+                    const imgEl = document.getElementById('quiz-img');
+                    if (end.image && end.image !== "") {
+                        imgEl.style.display = "block";
+                    } else {
+                        imgEl.style.display = "none";
+                    }
+                }
                 // 2. 判斷是否為封面頁
                 else if (storyData[currentNode] && storyData[currentNode].isCover) {
                     const cover = storyData[currentNode];
