@@ -4,181 +4,240 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>湯川秀樹：探求者的思緒</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
     <style>
-        /* 高級感極簡暗黑風格設計 */
-/* 替換原本的 body 樣式 */
+        /* ==========================================
+           1. 全域背景：完全復刻海報的深藍至炭黑漸層 + 粒子星點
+           ========================================== */
         body {
-            font-family: 'Noto Serif TC', serif; /* 使用高級襯線字體 */
-            
-            /* 深夜黑板風格 (Dark Chalkboard) 
-               使用純 CSS 模擬石板黑板的質感
-            */
-            background-color: #1a1a1f; /* 深色黑板基底 */
-            background-image: 
-                /* 1. 模擬極細微的粉塵噪點 */
-                radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                /* 2. 模擬黑板上淡淡的粉筆擦拭痕跡 */
-                linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px);
-            background-size: 100px 100px, 300px 300px; /* 控制噪點與滑痕的密度 */
-
-            color: #e2e8f0;
+            margin: 0;
+            padding: 0;
+            /* 海報標誌性的深藍黑到純黑的向心漸層 */
+            background: radial-gradient(circle, #101a2d 0%, #0a0f18 70%, #05070b 100%);
+            color: #cbd5e1;
+            font-family: 'Noto Serif TC', serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        /* 確保問卷卡片有微微的毛玻璃效果，並添加金色裝飾邊框樣式 */
-        .game-container {
-            background-color: rgba(36, 36, 50, 0.9); /* 讓卡片帶一點透明度 */
-            backdrop-filter: blur(5px); /* 毛玻璃效果 */
-            padding: 35px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(99, 102, 241, 0.1);
-            max-width: 550px;
-            width: 100%;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.05); /* 卡片邊框也要很淡 */
-            position: relative; /* 用於定位裝飾邊框 */
-            overflow: hidden; /* 確保裝飾邊框不超出 */
-            transition: all 0.3s ease;
-        }
-
-        /* 卡片外部邊緣的精緻金色裝飾邊框樣式 */
-        .game-container::before {
+        /* 複刻海報背景：星芒與量子網絡浮水印 */
+        body::before {
             content: "";
             position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            bottom: 10px;
-            border: 2px solid rgba(251, 191, 36, 0.1); /* 金色、半透明邊框 */
-            border-radius: 12px;
-            pointer-events: none; /* 確保不干擾交互 */
+            top: 0; left: 0; right: 0; bottom: 0;
             background-image: 
-                /* 淡淡的金色粒子網絡浮水印 */
-                radial-gradient(circle at 2px 2px, rgba(251, 191, 36, 0.015) 1px, transparent 0);
-            background-size: 50px 50px;
-        }
-
-        /* 將公式設為極其微弱、模糊的浮水印，與參考圖相同風格 */
-        #formula-container {
-            position: absolute;
-            bottom: 50px;
-            right: 50px;
-            opacity: 0.1; /* 非常低的透明度 */
-            font-size: 40px;
+                /* 點綴微弱的金色與藍色粒子 */
+                radial-gradient(circle at 20% 30%, rgba(142, 148, 242, 0.08) 1px, transparent 1px),
+                radial-gradient(circle at 75% 15%, rgba(212, 163, 89, 0.06) 1px, transparent 1px),
+                radial-gradient(circle at 40% 80%, rgba(142, 148, 242, 0.05) 2px, transparent 2px);
+            background-size: 120px 120px, 180px 180px, 240px 240px;
             pointer-events: none;
-            color: rgba(255, 255, 255, 0.3); /* 模糊、白色的公式風格 */
-            font-family: 'Roboto Mono', monospace;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* 模糊效果 */
+            z-index: 0;
         }
 
-        /* 轉場動畫樣式 */
-        .fade { opacity: 0; transform: translateY(8px); }
+        /* ==========================================
+           2. 核心幾何邊框：完全復刻海報邊緣的金色雙線與菱形徽章
+           ========================================== */
+        .outer-border {
+            position: fixed;
+            top: 25px; left: 25px; right: 25px; bottom: 25px;
+            border: 1px solid rgba(212, 163, 89, 0.25); /* 外層細金線 */
+            pointer-events: none;
+            z-index: 1;
+        }
+        .inner-border {
+            position: fixed;
+            top: 33px; left: 33px; right: 33px; bottom: 33px;
+            border: 1px solid rgba(212, 163, 89, 0.15); /* 內層細金線 */
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* 海報上下中心的古典幾何裝飾塊 */
+        .border-deco-top {
+            position: fixed; top: 21px; left: 50%; transform: translateX(-50%);
+            width: 30px; height: 12px; border: 1px solid rgba(212, 163, 89, 0.6);
+            background-color: #0a0f18; rotate: 45deg; z-index: 2;
+        }
+        .border-deco-bottom {
+            position: fixed; bottom: 21px; left: 50%; transform: translateX(-50%);
+            width: 30px; height: 12px; border: 1px solid rgba(212, 163, 89, 0.6);
+            background-color: #0a0f18; rotate: 45deg; z-index: 2;
+        }
+
+        /* ==========================================
+           3. 物理公式浮水印（背景幽靈文字）
+           ========================================== */
+        .bg-formulas {
+            position: absolute;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.03);
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+        #f1 { top: 10%; left: 10%; font-size: 32px; }
+        #f2 { top: 15%; right: 15%; font-size: 28px; }
+        #f3 { bottom: 15%; left: 12%; font-size: 26px; }
+        #f4 { bottom: 12%; right: 10%; font-size: 36px; }
+
+        /* ==========================================
+           4. 遊戲主卡片：極簡透光、不干擾背景
+           ========================================== */
+        .game-container {
+            width: 100%;
+            max-width: 620px;
+            background: rgba(10, 15, 24, 0.65); /* 半透明神祕藍黑 */
+            backdrop-filter: blur(8px); /* 輕微毛玻璃 */
+            border: 1px solid rgba(142, 148, 242, 0.15);
+            border-radius: 16px;
+            padding: 45px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(142, 148, 242, 0.05);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            box-sizing: border-box;
+            z-index: 10;
+            position: relative;
+        }
+
+        .fade { opacity: 0; transform: translateY(10px); }
         .show { opacity: 1; transform: translateY(0); }
 
-        /* 封面佈局 */
-        .cover-view {
-            text-align: center;
-            padding: 30px 0;
-        }
-        .cover-title {
-            font-size: 32px;
+        /* ==========================================
+           5. 封面佈局與標題：完全復刻海報字體風格
+           ========================================== */
+        .cover-view { text-align: center; padding: 20px 0; }
+        
+        /* 復刻海報：黃金漸層發光字體 */
+        .gold-glow-title {
+            font-size: 36px;
             font-weight: 700;
-            letter-spacing: 3px;
-            color: #ffffff;
-            margin-bottom: 16px;
+            letter-spacing: 2px;
+            /* 實現海報中的亮黃金漸層色 */
+            background: linear-gradient(to bottom, #fff6df 0%, #f3cc83 50%, #d4a359 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            /* 精緻的發光字體特效 */
+            filter: drop-shadow(0 0 12px rgba(212, 163, 89, 0.45));
+            margin-bottom: 24px;
+            line-height: 1.4;
         }
+
         .cover-subtitle {
             font-size: 16px;
-            color: #8e94a1;
-            line-height: 1.6;
+            color: #94a3b8;
+            letter-spacing: 1px;
+            line-height: 1.8;
             margin-bottom: 40px;
         }
 
-        /* 圖片與內嵌框架放置槽 */
+        /* 圖片樣式（與卡片融合） */
         .quiz-image {
             width: 100%;
-            max-height: 260px;
+            max-height: 240px;
             object-fit: cover;
-            border-radius: 6px;
-            margin-bottom: 24px;
-            border: 1px solid #26262b;
-            display: none; /* 預設隱藏 */
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(212, 163, 89, 0.2);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: none;
         }
 
-        /* 題目內文 */
+        /* 題目文字：復刻海報黃金字體 */
         .question-text {
-            font-size: 19px;
+            font-size: 21px;
+            font-weight: 500;
             line-height: 1.7;
-            margin-bottom: 28px;
-            color: #f1f5f9;
+            margin-bottom: 35px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f5d69f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px rgba(212, 163, 89, 0.2));
             text-align: left;
         }
 
-        /* 二選一選項按鈕 */
+        /* ==========================================
+           6. 二選一選項按鈕：沉穩藍黑底 + 金色微光邊框
+           ========================================== */
         .btn {
             display: block;
             width: 100%;
-            padding: 16px 20px;
-            margin-bottom: 14px;
-            background-color: #202026;
-            border: 1px solid #2d2d35;
-            border-radius: 6px;
-            color: #cbd5e1;
+            padding: 18px 24px;
+            margin-bottom: 16px;
+            background-color: rgba(16, 24, 41, 0.85);
+            border: 1px solid rgba(212, 163, 89, 0.25); /* 輕微金邊 */
+            border-radius: 8px;
+            color: #e2e8f0;
             font-size: 16px;
             font-family: 'Noto Serif TC', serif;
             text-align: left;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             box-sizing: border-box;
         }
+        /* 懸停：亮藍色與金色交織發光 */
         .btn:hover {
-            background-color: #262630;
-            border-color: #8e94f2;
+            background-color: rgba(24, 37, 64, 0.95);
+            border-color: #f3cc83;
             color: #ffffff;
-            transform: translateX(4px);
+            transform: translateX(5px);
+            box-shadow: 0 0 15px rgba(142, 148, 242, 0.3);
         }
 
-        /* 主動型中心按鈕（封面與結局用） */
+        /* 中心大按鈕（開始與重新挑戰） */
         .btn-center {
             text-align: center;
-            background-color: #8e94f2;
-            color: #0f0f12;
+            background: linear-gradient(135deg, #f3cc83 0%, #d4a359 100%);
+            color: #05070b;
             font-weight: 700;
             border: none;
-            margin: 20px auto 0;
-            max-width: 200px;
+            margin: 25px auto 0;
+            max-width: 220px;
+            filter: drop-shadow(0 4px 10px rgba(212, 163, 89, 0.3));
         }
         .btn-center:hover {
-            background-color: #767bc7;
-            color: #ffffff;
+            background: linear-gradient(135deg, #fff6df 0%, #f3cc83 100%);
+            color: #05070b;
             transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(212, 163, 89, 0.5);
         }
 
-        /* 結局專用樣式 */
+        /* 結局專用 */
         .ending-title {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
-            color: #8e94f2;
-            margin-bottom: 20px;
+            background: linear-gradient(to bottom, #fff6df 0%, #f3cc83 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
             text-align: center;
+            filter: drop-shadow(0 0 10px rgba(212, 163, 89, 0.4));
         }
         .ending-text {
             font-size: 16px;
-            line-height: 1.8;
-            color: #94a3b8;
+            line-height: 1.9;
+            color: #cbd5e1;
             text-align: justify;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
     </style>
 </head>
 <body>
+
+    <div class="outer-border"></div>
+    <div class="inner-border"></div>
+    <div class="border-deco-top"></div>
+    <div class="border-deco-bottom"></div>
+
+    <div class="bg-formulas" id="f1">∑ Ψ(n_e) √(ε - λ)</div>
+    <div class="bg-formulas" id="f2">F⃗ = ma⃗</div>
+    <div class="bg-formulas" id="f3">λ = h / p</div>
+    <div class="bg-formulas" id="f4">E = mc²</div>
 
     <div class="game-container show" id="game-card"></div>
 
@@ -187,8 +246,8 @@
         const storyData = {
             "cover": {
                 isCover: true,
-                title: "湯川秀樹：探求者的思緒",
-                subtitle: "一個關於科學、文學與命運的分支問卷遊戲",
+                title: "「一隅之光，普照世界——<br>從介子理論看萬物聯繫」",
+                subtitle: "湯川秀樹 · 探求者的思緒生平分支遊戲",
                 next: "1"
             },
             "1": {
@@ -384,7 +443,7 @@
             "endingC": {
                 title: "【結局 C：開創時代的工業領袖】",
                 image: "S__81813523.jpg",
-                text: "you你從物理學系畢業後，轉向了更具實作價值的精密機械與工業技術。你憑藉著紮實的基礎科學底蘊，帶領戰後日本的機械工業走向現代化，成為了備受敬重的工業界巨擘與應用科學導師。"
+                text: "你從物理學系畢業後，轉向了更具實作價值的精密機械與工業技術。你憑藉著紮實的基礎科學底蘊，帶領戰後日本的機械工業走向現代化，成為了備受敬重的工業界巨擘與應用科學導師。"
             },
             "endingD": {
                 title: "【結局 D：昭和浪漫的京都文豪】",
@@ -401,11 +460,10 @@
             container.classList.add('fade');
 
             setTimeout(() => {
-                // 1. 結局頁渲染
+                // 1. 結局頁
                 if (endings[currentNode]) {
                     const end = endings[currentNode];
                     let imgHtml = "";
-                    
                     if (end.image && end.image.toLowerCase().endsWith('.pdf')) {
                         imgHtml = `<iframe class="quiz-image" src="${end.image}" style="width:100%; height:260px; border:none; display:block;"></iframe>`;
                     } else if (end.image && end.image !== "") {
@@ -419,22 +477,21 @@
                         <button class="btn btn-center" onclick="location.reload()">重新探索人生</button>
                     `;
                 } 
-                // 2. 封面頁渲染
+                // 2. 封面頁（完美復刻海報黃金大字體）
                 else if (storyData[currentNode] && storyData[currentNode].isCover) {
                     const cover = storyData[currentNode];
                     container.innerHTML = `
                         <div class="cover-view">
-                            <div class="cover-title">${cover.title}</div>
+                            <div class="gold-glow-title">${cover.title}</div>
                             <div class="cover-subtitle">${cover.subtitle}</div>
                             <button class="btn btn-center" onclick="changeNode('${cover.next}')">開始旅程</button>
                         </div>
                     `;
                 }
-                // 3. 一般題目頁渲染
+                // 3. 一般題目頁
                 else if (storyData[currentNode]) {
                     const node = storyData[currentNode];
                     let imgHtml = "";
-                    
                     if (node.image && node.image !== "") {
                         imgHtml = `<img class="quiz-image" src="${node.image}" alt="遊戲畫面" style="display:block;">`;
                     }
