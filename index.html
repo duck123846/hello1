@@ -7,31 +7,75 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* 高級感極簡暗黑風格設計 */
+/* 替換原本的 body 樣式 */
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #0f0f12; /* 純粹暗黑基底 */
+            font-family: 'Noto Serif TC', serif; /* 使用高級襯線字體 */
+            
+            /* 深夜黑板風格 (Dark Chalkboard) 
+               使用純 CSS 模擬石板黑板的質感
+            */
+            background-color: #1a1a1f; /* 深色黑板基底 */
+            background-image: 
+                /* 1. 模擬極細微的粉塵噪點 */
+                radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                /* 2. 模擬黑板上淡淡的粉筆擦拭痕跡 */
+                linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px);
+            background-size: 100px 100px, 300px 300px; /* 控制噪點與滑痕的密度 */
+
             color: #e2e8f0;
-            font-family: 'Noto Serif TC', serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            margin: 0;
             padding: 20px;
             box-sizing: border-box;
         }
 
-        /* 遊戲主卡片 */
+        /* 確保問卷卡片有微微的毛玻璃效果，並添加金色裝飾邊框樣式 */
         .game-container {
+            background-color: rgba(36, 36, 50, 0.9); /* 讓卡片帶一點透明度 */
+            backdrop-filter: blur(5px); /* 毛玻璃效果 */
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(99, 102, 241, 0.1);
+            max-width: 550px;
             width: 100%;
-            max-width: 580px;
-            background-color: #17171c; /* 內斂黑灰色 */
-            border: 1px solid #26262b;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05); /* 卡片邊框也要很淡 */
+            position: relative; /* 用於定位裝飾邊框 */
+            overflow: hidden; /* 確保裝飾邊框不超出 */
+            transition: all 0.3s ease;
+        }
+
+        /* 卡片外部邊緣的精緻金色裝飾邊框樣式 */
+        .game-container::before {
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 2px solid rgba(251, 191, 36, 0.1); /* 金色、半透明邊框 */
             border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            box-sizing: border-box;
+            pointer-events: none; /* 確保不干擾交互 */
+            background-image: 
+                /* 淡淡的金色粒子網絡浮水印 */
+                radial-gradient(circle at 2px 2px, rgba(251, 191, 36, 0.015) 1px, transparent 0);
+            background-size: 50px 50px;
+        }
+
+        /* 將公式設為極其微弱、模糊的浮水印，與參考圖相同風格 */
+        #formula-container {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            opacity: 0.1; /* 非常低的透明度 */
+            font-size: 40px;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.3); /* 模糊、白色的公式風格 */
+            font-family: 'Roboto Mono', monospace;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* 模糊效果 */
         }
 
         /* 轉場動畫樣式 */
