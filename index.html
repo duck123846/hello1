@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         /* ==========================================
-           1. 視覺基礎：深邃量子空間背景
+           1. 全域量子星空背景
            ========================================== */
         :root {
             --gold-light: #fff6df;
@@ -27,21 +27,22 @@
         #webgl-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
         /* ==========================================
-           2. 置中裝飾卡片（黑板與手卷質感）
+           2. 講堂黑板卡片（滑動解鎖與金線外觀）
            ========================================== */
         .game-container {
             width: 92%; max-width: 650px; 
-            background: rgba(12, 18, 28, 0.9);
+            background: rgba(12, 18, 28, 0.92);
             backdrop-filter: blur(15px);
             border-radius: 4px;
-            padding: 45px 30px 55px 30px; /* 增加底部內距，防止按鈕溢出 */
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(212, 163, 89, 0.05);
+            padding: 50px 35px 60px 35px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.95), inset 0 0 40px rgba(212, 163, 89, 0.08);
             z-index: 10; position: relative;
             text-align: center;
-            border: 1px solid rgba(212, 163, 89, 0.2);
-            max-height: 85vh; /* 縮小最大高度，確保手機版有呼吸空間 */
-            overflow-y: auto;
-            transition: opacity 0.5s ease;
+            border: 1px solid rgba(212, 163, 89, 0.25);
+            max-height: 90vh; /* 優化高度，解除卡死 */
+            overflow-y: auto; /* 開啟流暢滑動 */
+            scrollbar-width: thin;
+            scrollbar-color: var(--gold-dark) transparent;
         }
 
         /* 幾何金色雙框 */
@@ -62,51 +63,52 @@
         .br { bottom: 30px; right: 30px; border-left: 0; border-top: 0; }
 
         /* ==========================================
-           3. 核心轉場特效：黑板擦除 (Chalk Eraser) 與 粉筆書寫 (Chalk Writing)
+           3. 核心特效：135度斜向板擦擦除、強粒子粉筆書寫
            ========================================== */
-        /* 整個卡片容器換頁時的漸層淡入淡出 */
-        .page-fade-out { opacity: 0; }
-        .page-fade-in { opacity: 1; }
+        /* 黑板切換：整體淡入淡出 */
+        .board-fade-out { opacity: 0; transition: opacity 0.4s ease; }
+        .board-fade-in { opacity: 1; transition: opacity 0.5s ease; }
 
-        /* 題目文字：粉筆一筆一畫書寫浮現效果 */
-        .chalk-writing {
+        /* 粉筆粒子一筆一畫凝聚效果（放慢速度，增強微觀質感） */
+        .chalk-word {
             display: inline-block;
             position: relative;
-            animation: chalk-write 0.4s forwards ease-out;
             opacity: 0;
+            transform: scale(0.92);
+            filter: blur(4px); /* 強粒子粉筆灰霧化感 */
+            animation: chalk-render 0.5s forwards cubic-bezier(0.12, 0.8, 0.3, 1);
         }
-        @keyframes chalk-write {
-            0% { opacity: 0; transform: scale(0.95); filter: blur(2px); }
-            100% { opacity: 1; transform: scale(1); filter: blur(0px); }
+        @keyframes chalk-render {
+            0% { opacity: 0; transform: scale(0.92); filter: blur(4px); text-shadow: 0 0 10px rgba(255,255,255,0.4); }
+            50% { opacity: 0.8; filter: blur(1.5px); text-shadow: 0 0 5px var(--gold-light); }
+            100% { opacity: 1; transform: scale(1); filter: blur(0px); text-shadow: none; }
         }
 
-        /* 板擦擦除動畫效果 */
-        .eraser-wipe {
+        /* 135度左斜上往右斜下板擦橫掃特效 */
+        .board-wiper {
             position: relative;
             overflow: hidden;
         }
-        .eraser-wipe::after {
-            content: "";
-            position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            /* 模擬粉筆灰痕跡與擦除橫條 */
-            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.15) 70%, rgba(255,255,255,0.4) 90%, transparent 100%);
-            box-shadow: 0 0 20px rgba(255,255,255,0.2);
-            transition: left 0.5s ease-in-out;
+        .board-wiper::after {
+            content: ""; position: absolute;
+            top: -50%; left: -150%; width: 200%; height: 200%;
+            /* 135度斜向粉筆灰與板擦帶 */
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.1) 60%, transparent 100%);
+            transform: rotate(0deg);
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
+            z-index: 99;
         }
-        .eraser-wipe.wiping::after {
-            left: 100%;
-        }
+        .board-wiper.wiping::after { left: 150%; }
 
         /* ==========================================
-           4. 標題與內文字體
+           4. 高級感海報字體風格
            ========================================== */
         .gold-glow-title {
             font-size: 30px; font-weight: 900; 
             background: linear-gradient(to bottom, var(--gold-light) 0%, var(--gold-main) 50%, var(--gold-dark) 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(212, 163, 89, 0.4));
+            filter: drop-shadow(0 0 15px rgba(212, 163, 89, 0.45));
             margin-bottom: 25px; line-height: 1.5;
         }
 
@@ -129,7 +131,7 @@
         }
 
         /* ==========================================
-           5. 2B鉛筆劃記答案卡（慢慢散播塗黑）
+           5. 2B鉛筆強效劃記答案卡（高顯性慢慢擴散）
            ========================================== */
         .btn-group { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 
@@ -144,39 +146,41 @@
             text-align: left;
         }
 
-        /* 試卷答案卡空心框 [ ] */
+        /* 試卷填空框 [ ] */
         .sheet-box {
-            width: 22px; height: 16px; border: 1px solid var(--gold-main);
+            width: 24px; height: 16px; border: 2px solid var(--gold-main); /* 加粗邊框 */
             position: relative; flex-shrink: 0; background: transparent;
-            overflow: hidden;
+            overflow: hidden; box-shadow: 0 0 4px rgba(0,0,0,0.5);
         }
 
-        /* 鉛筆石墨粉末由左上往右下慢慢散播延伸的動畫效果 */
+        /* 2B鉛筆濃烈石墨粉末：由左上往右下擴散 */
         .sheet-box::before {
             content: ""; position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #22222a;
-            box-shadow: inset 0 0 6px #000;
-            transform: translate(-100%, -100%) rotate(45deg); /* 從左上方藏起來 */
-            transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.3, 1); /* 絲滑的散播速度 */
+            background-color: #15151c; /* 深度鉛筆碳黑色 */
+            box-shadow: inset 0 0 8px #000;
+            transform: translate(-100%, -100%) rotate(45deg);
+            transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.25, 1);
         }
 
-        /* 劃記核心：塗黑後方框的變化 */
+        /* 劃記核心：極其醒目的塗黑反光微光圈 */
         .btn.selected .sheet-box::before {
-            transform: translate(0, 0) rotate(0deg); /* 慢慢延伸填滿整個格子 */
+            transform: translate(0, 0) rotate(0deg); /* 慢慢塗滿 */
         }
         .btn.selected .sheet-box::after {
             content: "■"; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scaleX(1.4);
-            color: #f3cc83; font-size: 18px; opacity: 0;
-            transition: opacity 0.2s ease 0.2s; /* 當石墨擴散到一半時，2B痕跡顯現 */
+            transform: translate(-50%, -50%) scaleX(1.5);
+            color: #f5cc84; font-size: 20px; opacity: 0;
+            text-shadow: 0 0 6px var(--gold-main); /* 劃記黃金高亮 */
+            transition: opacity 0.2s ease 0.25s;
         }
         .btn.selected .sheet-box {
-            box-shadow: 0 0 8px rgba(243, 204, 131, 0.4);
+            border-color: #ffffff;
+            box-shadow: 0 0 12px var(--gold-main); /* 顯著發光微光圈 */
         }
         .btn.selected {
-            background-color: rgba(212, 163, 89, 0.05);
-            border-color: var(--gold-main);
+            background-color: rgba(212, 163, 89, 0.08);
+            border-color: #ffffff;
         }
 
         .btn:hover:not(.selected) {
@@ -184,7 +188,7 @@
             border-color: var(--gold-main);
         }
 
-        /* 置中大按鈕（優化底部間距） */
+        /* 底部裝飾與中心按鈕 */
         .btn-center {
             justify-content: center; text-align: center;
             background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
@@ -199,16 +203,10 @@
         }
         .btn-theory:hover { background-color: rgba(142, 148, 242, 0.3); color: #fff; }
 
-        .ending-title {
-            font-size: 24px; font-weight: 700;
-            background: linear-gradient(to bottom, var(--gold-light) 0%, var(--gold-main) 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 25px; filter: drop-shadow(0 0 10px rgba(212, 163, 89, 0.4));
-        }
         .ending-text { font-size: 16px; line-height: 1.9; color: #cbd5e1; text-align: justify; margin-bottom: 30px; }
 
         /* ==========================================
-           6. 介子理論科普劇場
+           6. 介子理論大眾科普劇場
            ========================================== */
         #theory-view { display: none; text-align: center; }
         .game-of-catch {
@@ -252,13 +250,14 @@
 
     <canvas id="webgl-canvas"></canvas>
 
-    <div class="game-container page-fade-in eraser-wipe" id="game-card">
+    <div class="game-container board-fade-in board-wiper" id="game-card">
         <div class="corner tl"></div><div class="corner tr"></div>
         <div class="corner bl"></div><div class="corner br"></div>
         <div id="card-content"></div>
     </div>
 
     <script>
+        // 1. 豪華版完整劇本故事資料庫（絕不刪減）
         const storyData = {
             "cover": {
                 isCover: true,
@@ -267,7 +266,7 @@
                 next: "1"
             },
             "1": {
-                text: "你出生在富裕家庭裡過著優渥的生活，今天你的早餐想吃：",
+                text: "【第 1 題】你出生在富裕家庭裡過著優渥的生活，今天你的早餐想吃：",
                 image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80",
                 options: [
                     { text: "進進堂的剛烤好的麵包配上冰咖啡", next: "2" },
@@ -275,45 +274,46 @@
                 ]
             },
             "2": {
-                text: "今天在學校唸書，發現書包裡還有空間，你打算帶著：",
+                text: "【第 2 題】今天在學校唸書，發現书包裡還有空間，你打算帶著：",
                 options: [
                     { text: "最新一期泰晤士報", next: "3" },
                     { text: "一小盒和菓子", next: "3" }
                 ]
             },
             "3": {
-                text: "走在京都新風館的長廊上，你望向遠方的星空，此時你心中更嚮往的是？",
+                text: "【第 3 題：關鍵抉擇 I】走在京都新風館的長廊上，你望向遠方的星空，此時你心中更嚮往的是？",
                 options: [
                     { text: "物質世界背後的終極理型與規律", next: "4_main" },
                     { text: "人與人之間感性交織的文學篇章", next: "4_branch3" }
                 ]
             },
-            "4_main": { text: "你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：", options: [{ text: "不理它", next: "5_main" }, { text: "有貓就要摸", next: "5_main" }] },
-            "5_main": { text: "放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：", options: [{ text: "濃郁醇香的抹茶", next: "6_main" }, { text: "夢幻的冰淇淋蘇打", next: "6_main" }] },
-            "6_main": { text: "在選擇大學專業時，你選擇攻讀：", options: [{ text: "京都帝國大學物理學系", next: "7_main" }, { text: "西洋文化學系及基礎現代文學系", next: "7_branch6" }] },
-            "7_main": { text: "1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", options: [{ text: "傳統日式白無垢及黑紋付羽織袴", next: "8_main" }, { text: "西式蕾絲白紗及三件式西裝", next: "8_main" }] },
-            "8_main": { text: "你在32歲擔任京都帝國大學教授。回家路上雨下很大，於是你打算：", options: [{ text: "搭乘電車回家", next: "9_main" }, { text: "住在實驗室裡", next: "9_main" }] },
-            "9_main": { text: "深夜的黑板前，你正在推導微觀粒子的核力公式，這時你突然想到了什麼？", options: [{ text: "預言未知微觀粒子（介子）的存在", next: "10_mainA" }, { text: "科學探求與世界和平之間的平衡關係", next: "10_mainB" }] },
-            "10_mainA": { text: "今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingA" }, { text: "到鴨川河畔一起看夕陽", next: "endingA" }] },
-            "10_mainB": { text: "今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingB" }, { text: "到鴨川河畔一起看夕陽", next: "endingB" }] },
+            "4_main": { text: "【第 4 題】你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：", options: [{ text: "不理它", next: "5_main" }, { text: "有貓就要摸", next: "5_main" }] },
+            "5_main": { text: "【第 5 題：喫茶時光】放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：", options: [{ text: "濃郁醇香的抹茶", next: "6_main" }, { text: "夢幻的冰淇淋蘇打", next: "6_main" }] },
+            "6_main": { text: "【第 6 題：關鍵抉擇 II】在選擇大學專業時，你選擇攻讀：", options: [{ text: "京都帝國大學物理學系", next: "7_main" }, { text: "西洋文化學系及基礎現代文學系", next: "7_branch6" }] },
             
-            "7_branch6": { text: "今天實驗（或創作）做到爆肝，進度落後，你打算：", options: [{ text: "喝咖啡趕快把今天進度趕完", next: "8_branch6" }, { text: "直接睡實驗室（或書房）了", next: "8_branch6" }] },
-            "8_branch6": { text: "好不容易畢業了，站在人生的交叉路口，你打算：", options: [{ text: "投身機械工業", next: "9_branch6" }, { text: "繼續攻讀博士", next: "9_branch6" }] },
-            "9_branch6": { text: "1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", options: [{ text: "傳統日式白無垢及黑紋付羽織袴", next: "10_branch6" }, { text: "西式蕾絲白紗及三件式西裝", next: "10_branch6" }] },
-            "10_branch6": { text: "但今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingC" }, { text: "到鴨川河畔一起看夕陽", next: "endingC" }] },
+            "7_main": { text: "【第 7 題】1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", options: [{ text: "傳統日式白無垢及黑紋付羽織袴", next: "8_main" }, { text: "西式蕾絲白紗及三件式西裝", next: "8_main" }] },
+            "8_main": { text: "【第 8 題】你在32歲擔任京都帝國大學教授。回家路上雨下很大，於是你打算：", options: [{ text: "搭乘電車回家", next: "9_main" }, { text: "住在實驗室裡", next: "9_main" }] },
+            "9_main": { text: "【第 9 題：關鍵抉擇 III】深夜的黑板前，你正在推導微觀粒子的核力公式，這時你突然想到了什麼？", options: [{ text: "預言未知微觀粒子（介子）的存在", next: "10_mainA" }, { text: "科學探求與世界和平之間的平衡關係", next: "10_mainB" }] },
+            "10_mainA": { text: "【第 10 題】今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingA" }, { text: "到鴨川河畔一起看夕陽", next: "endingA" }] },
+            "10_mainB": { text: "【第 10 題】今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingB" }, { text: "到鴨川河畔一起看夕陽", next: "endingB" }] },
+            
+            "7_branch6": { text: "【第 7 題】今天實驗（或創作）做到爆肝，進度落後，你打算：", options: [{ text: "喝咖啡趕快把今天進度趕完", next: "8_branch6" }, { text: "直接睡實驗室（或書房）了", next: "8_branch6" }] },
+            "8_branch6": { text: "【第 8 題：生涯規劃】好不容易畢業了，站在人生的交叉路口，你打算：", options: [{ text: "投身機械工業", next: "9_branch6" }, { text: "繼續攻讀博士", next: "9_branch6" }] },
+            "9_branch6": { text: "【第 9 題】1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", options: [{ text: "傳統日式白無垢及黑紋付羽織袴", next: "10_branch6" }, { text: "西式蕾絲白紗及三件式西裝", next: "10_branch6" }] },
+            "10_branch6": { text: "【第 10 題】但今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingC" }, { text: "到鴨川河畔一起看夕陽", next: "endingC" }] },
 
-            "4_branch3": { text: "你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：", options: [{ text: "不理它", next: "5_branch3" }, { text: "有貓就要摸", next: "5_branch3" }] },
-            "5_branch3": { text: "放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：", options: [{ text: "濃郁醇香的抹茶", next: "6_branch3" }, { text: "夢幻的冰淇淋蘇打", next: "6_branch3" }] },
-            "6_branch3": { text: "在選擇大學專業時，你選擇攻讀：", options: [{ text: "西洋文化學系", next: "7_branch3" }, { text: "基礎現代文學系", next: "7_branch3" }] },
-            "7_branch3": { text: "1932年，你與心儀的女子結婚。在婚禮上，你們打算穿著：", options: [{ text: "傳統日式白無垢及黑紋付羽織袴", next: "8_branch3" }, { text: "西式蕾絲白紗及三件式西裝", next: "8_branch3" }] },
-            "8_branch3": { text: "好不容易畢業了，站在人生的交叉路口，你打算成為：", options: [{ text: "獨立作家", next: "9_branch3" }, { text: "繼續深造，未來成為文化學教授", next: "9_branch3" }] },
-            "9_branch3": { text: "你搭著路面電車回家，心裡在想著：", options: [{ text: "明天早餐要吃什麼", next: "10_branch3" }, { text: "等等要不要去喝個酒", next: "10_branch3" }] },
-            "10_branch3": { text: "今天特別閒，打算跟妻子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingD" }, { text: "到鴨川河畔一起看夕陽", next: "endingD" }] }
+            "4_branch3": { text: "【第 4 題】你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：", options: [{ text: "不理它", next: "5_branch3" }, { text: "有貓就要摸", next: "5_branch3" }] },
+            "5_branch3": { text: "【第 5 題：喫茶時光】放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：", options: [{ text: "濃郁醇香的抹茶", next: "6_branch3" }, { text: "夢幻的冰淇淋蘇打", next: "6_branch3" }] },
+            "6_branch3": { text: "【第 6 題：關鍵抉擇 II】在選擇大學專業時，你選擇攻讀：", options: [{ text: "西洋文化學系", next: "7_branch3" }, { text: "基礎現代文學系", next: "7_branch3" }] },
+            "7_branch3": { text: "【第 7 題】1932年，你與心儀的女子結婚。在婚禮上，你們打算穿著：", options: [{ text: "傳統日式白無垢及黑紋付羽織袴", next: "8_branch3" }, { text: "西式蕾絲白紗及三件式西裝", next: "8_branch3" }] },
+            "8_branch3": { text: "【第 8 題：生涯規劃】好不容易畢業了，站在人生的交叉路口，你打算成為：", options: [{ text: "獨立作家", next: "9_branch3" }, { text: "繼續深造，未來成為文化學教授", next: "9_branch3" }] },
+            "9_branch3": { text: "【第 9 題】你搭著路面電車回家，心裡在想著：", options: [{ text: "明天早餐要吃什麼", next: "10_branch3" }, { text: "等等要不要去喝個酒", next: "10_branch3" }] },
+            "10_branch3": { text: "【第 10 題】今天特別閒，打算跟妻子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingD" }, { text: "到鴨川河畔一起看夕陽", next: "endingD" }] }
         };
 
         const endings = {
             "endingA": { title: "【結局 A：介子之父，真理的先驅者】", image: "S__81813525.jpg", text: "你完美複製了湯川秀樹的傳奇人生。你在京都帝國大學深耕理論物理，於 1935 年提出了著名的介子理論，並在 1949 年獲得了日本首個諾貝爾物理學獎。你的名字將與微觀公式一同，被永遠載入基礎物理科學的史冊中。" },
-            "endingB": { title: "【結局 B：知性教授與和平使者】", image: "S__81813524.jpg", text: "你走上了純粹理論物理學家的道路，但比起名譽，你更關注人類社會的未來。後半生你積極投身於反核與世界和平運動，與愛因斯坦等人共同發表了《羅素—愛因斯坦宣言】，成為受人景仰的京都大學名譽教授，在科學與人道主義之間找到了完美的支點。" },
+            "endingB": { title: "【結局 B：知性教授與和平使者】", image: "S__81813524.jpg", text: "你走上了純粹理論物理學家的道路，但比起名譽，你更關注人類社會的未來。後半生你積極投身於反核與世界和平運動，與愛因斯坦等人共同發表了《羅素—愛因斯坦宣言》，成為受人景仰的京都大學名譽教授，在科學與人道主義之間找到了完美的支點。" },
             "endingC": { title: "【結局 C：開創時代的工業領袖】", image: "S__81813523.jpg", text: "你從物理學系畢業後，轉向了更具實作價值的精密機械與工業技術。你憑藉著紮實的基礎科學底子與嚴謹的邏輯思維，帶領戰後日本的機械工業走向現代化與國際舞台，成為了備受敬重的工業界巨擘與應用科學導師。" },
             "endingD": { title: "【結局 D：昭和浪漫的京都文豪】", image: "S__81813522.jpg", text: "你徹底離開了冷冰冰的公式，走向了充滿溫度的感性世界。你以細膩溫潤的筆觸描寫京都的四季、古都的街道與幽微的人心，成為了昭和時代著名的傳奇文豪。對你而言，生活、文字與美學才是探求世界的終極真理。" }
         };
@@ -321,19 +321,18 @@
         let currentNode = "cover";
 
         // ==========================================
-        // 核心功能：板擦擦除與粉筆逐字浮現引擎
+        // 核心功能：強粒子斜向粉筆一筆一畫書寫
         // ==========================================
         function executeChalkWritter(fullText, containerId, callback) {
             const container = document.getElementById(containerId);
             container.innerHTML = "";
             
-            // 將整段劇本文案拆解為單個文字字元，並各別賦予粉筆動畫
             const characters = fullText.split("");
             characters.forEach((char, index) => {
                 const span = document.createElement("span");
-                span.className = "chalk-writing";
-                // 每個字根據先後順序，產生微小的粉筆書寫延遲差（一筆一畫效果）
-                span.style.animationDelay = `${index * 25}ms`; 
+                span.className = "chalk-word";
+                // 135度斜向生長感：根據字元順序，賦予微小、漸進且刻意放慢的延遲差
+                span.style.animationDelay = `${index * 35}ms`; 
                 
                 if (char === "\n") {
                     container.appendChild(document.createElement("br"));
@@ -343,29 +342,25 @@
                 }
             });
 
-            // 當最後一個粉筆字寫完後觸發回呼
             setTimeout(() => {
                 if (callback) callback();
-            }, characters.length * 25 + 400);
+            }, characters.length * 35 + 500);
         }
 
+        // 135度左斜上往右斜下板擦擦拭轉場
         function boardEraserTransition(renderCallback) {
             const card = document.getElementById('game-card');
             
-            // 1. 觸發黑板擦除動作（粉筆灰痕跡橫跨卡片）
             card.classList.add('wiping');
-            card.classList.remove('page-fade-in');
-            card.classList.add('page-fade-out');
+            card.classList.remove('board-fade-in');
+            card.classList.add('board-fade-out');
 
             setTimeout(() => {
-                // 2. 擦乾淨後：在背景偷偷調換試卷內容
                 renderCallback();
                 card.classList.remove('wiping');
-                
-                // 3. 亮起新黑板
-                card.classList.remove('page-fade-out');
-                card.classList.add('page-fade-in');
-            }, 500); // 擦拭時間
+                card.classList.remove('board-fade-out');
+                card.classList.add('board-fade-in');
+            }, 600); // 擦拭時間
         }
 
         function renderGame() {
@@ -377,7 +372,7 @@
                     <div class="ending-title">${end.title}</div>
                     <div class="image-wrapper"><img src="${end.image}" style="display:block;" class="quiz-image"></div>
                     <div class="ending-text" id="chalk-box"></div>
-                    <div class="btn-group" id="end-btns" style="opacity:0; transition:opacity 0.5s; padding-bottom:10px;">
+                    <div class="btn-group" id="end-btns" style="opacity:0; transition:opacity 0.5s; padding-bottom:15px;">
                         <button class="btn btn-center btn-theory" onclick="showTheory()">✨ 30秒看懂：什麼是介子理論？</button>
                         <button class="btn btn-center" onclick="location.reload()">重新探索人生</button>
                     </div>
@@ -404,7 +399,7 @@
                     </button>
                 `).join("");
 
-                content.innerHTML = `${imgHtml}<div class="question-text" id="chalk-box"></div><div class="btn-group" id="quiz-btns" style="opacity:0; transition:opacity 0.4s; padding-bottom:10px;">${btns}</div>`;
+                content.innerHTML = `${imgHtml}<div class="question-text" id="chalk-box"></div><div class="btn-group" id="quiz-btns" style="opacity:0; transition:opacity 0.4s; padding-bottom:15px;">${btns}</div>`;
                 
                 executeChalkWritter(node.text, "chalk-box", () => {
                     document.getElementById('quiz-btns').style.opacity = "1";
@@ -412,15 +407,15 @@
             }
         }
 
-        // 點擊選項：劃記2B鉛筆（慢慢暈開塗黑）
+        // 劃記選項：2B鉛筆劃記（慢慢擴散填滿）
         function selectOption(btnId, nextNode) {
             const targetBtn = document.getElementById(btnId);
             targetBtn.classList.add('selected'); 
 
-            // 延長到 0.45 秒，讓玩家享受石墨從左上往右下完全染黑格子的過程
+            // 停頓 0.5 秒，充分享受鉛筆碳墨從左上往右下暈染填滿的擬真觸覺
             setTimeout(() => {
                 changeNode(nextNode);
-            }, 450);
+            }, 500);
         }
 
         function changeNode(n) { 
@@ -428,12 +423,12 @@
             boardEraserTransition(renderGame); 
         }
 
-        // 科普劇場（同樣套用粉筆一筆一畫書寫）
+        // 科普小劇場同樣套用強粒子粉筆書寫
         function showTheory() {
             boardEraserTransition(() => {
                 const content = document.getElementById('card-content');
                 content.innerHTML = `
-                    <div id="theory-view" style="display:block; padding-bottom:15px;">
+                    <div id="theory-view" style="display:block; padding-bottom:20px;">
                         <div class="gold-glow-title">介子：宇宙最強的「接球遊戲」</div>
                         <div class="game-of-catch">
                             <div class="repel-wave" style="left:15%"></div>
@@ -454,7 +449,7 @@
             });
         }
 
-        // Three.js 3D 量子空間
+        // Three.js 3D 量子星空背景
         let scene, camera, renderer, particleSystem, mouseX = 0, mouseY = 0;
         function init3D() {
             const canvas = document.getElementById('webgl-canvas');
