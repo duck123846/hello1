@@ -58,6 +58,16 @@
         }
         .btn-theory:hover { background-color: rgba(142, 148, 242, 0.3); color: #fff; }
 
+        /* 題目圖片與卡片完美融合 */
+        .quiz-image {
+            width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;
+            margin-bottom: 25px; border: 1px solid rgba(212, 163, 89, 0.2);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none;
+        }
+
+        /* 結局專用內文 */
+        .ending-text { font-size: 15px; line-height: 1.8; color: #cbd5e1; text-align: justify; margin-bottom: 25px; }
+
         /* ==========================================
            3. 介子理論小劇場動畫 (Meson Animation)
            ========================================== */
@@ -101,11 +111,10 @@
 
     <canvas id="webgl-canvas"></canvas>
 
-    <div class="game-container show" id="game-card">
-        </div>
+    <div class="game-container show" id="game-card"></div>
 
     <script>
-        // 1. 劇情資料庫
+        // 1. 樹狀劇情分支資料庫
         const storyData = {
             "cover": {
                 isCover: true,
@@ -135,14 +144,15 @@
                     { text: "B. 人與人之間感性交織的文學篇章", next: "4_branch3" }
                 ]
             },
-            // ... (其餘題目邏輯維持不變)
             "4_main": { text: "你快要遲到了，在趕去上學路上遇到了一隻貓咪：", options: [{ text: "A. 不理它", next: "5_main" }, { text: "B. 有貓就要摸", next: "5_main" }] },
             "5_main": { text: "你經歷了努力，考上京都帝國大學物理學系。路過喫茶館，你點了：", options: [{ text: "A. 濃郁醇香的抹茶", next: "6_main" }, { text: "B. 夢幻冰淇淋蘇打", next: "6_main" }] },
             "6_main": { text: "深入研究物理後，前方的學術道路出現了分歧：", options: [{ text: "A. 堅持走純粹的理論物理", next: "7_main" }, { text: "B. 轉向動手做實驗與應用", next: "7_branch6" }] },
-            "7_main": { text: "1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", options: [{ text: "A. 傳統日式白無垢", next: "8_main" }, { text: "B. 西式蕾絲白紗", next: "8_main" }] },
+            "7_main": { text: "1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", options: [{ text: "A. 傳統日式白無垢及黑紋付羽織袴", next: "8_main" }, { text: "B. 西式蕾絲白紗及三件式西裝", next: "8_main" }] },
             "8_main": { text: "你擔任教授。回家路上雨下很大，你會：", options: [{ text: "A. 搭電車回家", next: "9_main" }, { text: "B. 住在實驗室裡", next: "9_main" }] },
-            "9_main": { text: "深夜你正在推導核力公式，這時你突然想到了：", options: [{ text: "A. 預言未知微觀粒子（介子）", next: "10_main" }, { text: "B. 科學與世界和平的平衡", next: "10_main" }] },
-            "10_main": { text: "今天特別閒，打算跟妻子湯川澄子來場約會：", options: [{ text: "A. 去百貨公司逛衣服", next: "endingA" }, { text: "B. 到鴨川河畔看夕陽", next: "endingA" }] },
+            "9_main": { text: "深夜你正在推導核力公式，這時你突然想到了：", options: [{ text: "A. 預言未知微觀粒子（介子）的存在", next: "10_mainA" }, { text: "B. 科學與世界和平之間的平衡關係", next: "10_mainB" }] },
+            
+            "10_mainA": { text: "今天特別閒，打算跟妻子湯川澄子來場約會：", options: [{ text: "A. 去百貨公司逛衣服", next: "endingA" }, { text: "B. 到鴨川河畔看夕陽", next: "endingA" }] },
+            "10_mainB": { text: "今天特別閒，打算跟妻子湯川澄子來場約會：", options: [{ text: "A. 去百貨公司逛衣服", next: "endingB" }, { text: "B. 到鴨川河畔看夕陽", next: "endingB" }] },
             
             "7_branch6": { text: "今天實驗做到爆肝，你打算：", options: [{ text: "A. 喝咖啡趕進度", next: "8_branch6" }, { text: "B. 直接睡實驗室", next: "8_branch6" }] },
             "8_branch6": { text: "畢業了，站在人生交叉路口，你打算：", options: [{ text: "A. 投身機械工業", next: "9_branch6" }, { text: "B. 繼續攻讀博士", next: "9_branch6" }] },
@@ -151,21 +161,40 @@
 
             "4_branch3": { text: "快遲到了，遇到一隻可愛的貓咪：", options: [{ text: "A. 不理它", next: "5_branch3" }, { text: "B. 有貓就要摸", next: "5_branch3" }] },
             "5_branch3": { text: "路過新開的喫茶館，你點了：", options: [{ text: "A. 濃郁抹茶", next: "6_branch3" }, { text: "B. 夢幻蘇打", next: "6_branch3" }] },
-            "6_branch3": { text: "在選擇大學專業時，你攻讀：", options: [{ text: "A. 西洋文化學系", next: "7_branch3" }, { text: "B. 基礎現代文學", next: "7_branch3" }] },
+            "6_branch3": { text: "在選擇大學專業時，你攻讀：", options: [{ text: "A. 西洋文化學系", next: "7_branch3" }, { text: "B. 基礎現代文學系", next: "7_branch3" }] },
             "7_branch3": { text: "與心儀女子結婚，婚禮穿著：", options: [{ text: "A. 日式白無垢", next: "8_branch3" }, { text: "B. 西式蕾絲白紗", next: "8_branch3" }] },
             "8_branch3": { text: "大學畢業後，打算成為：", options: [{ text: "A. 作家", next: "9_branch3" }, { text: "B. 未來成為教授", next: "9_branch3" }] },
             "9_branch3": { text: "搭電車回家，心裡想著：", options: [{ text: "A. 明天早餐吃什麼", next: "10_branch3" }, { text: "B. 要不要去喝杯酒", next: "10_branch3" }] },
             "10_branch3": { text: "說走就走的約會：", options: [{ text: "A. 逛百貨公司", next: "endingD" }, { text: "B. 到鴨川看夕陽", next: "endingD" }] }
         };
 
+        // 2. 四大結局完整資料庫（已補回結局 B）
         const endings = {
-            "endingA": { title: "【結局 A：介子之父】", image: "S__81813525.jpg", text: "你完美複製了湯川秀樹的傳奇人生。你在 1935 年提出了介子理論，並獲得了首個諾貝爾物理學獎。" },
-            "endingC": { title: "【結局 C：工業領袖】", image: "S__81813523.jpg", text: "你轉向了具實作價值的精密機械。憑藉紮實科學底蘊，帶領戰後日本工業走向現代化。" },
-            "endingD": { title: "【結局 D：京都文豪】", image: "S__81813522.jpg", text: "你走向了感性世界。以筆觸描寫京都的四季，成為了昭和時代著名的傳奇文豪。" }
+            "endingA": { 
+                title: "【結局 A：介子之父，真理的先驅者】", 
+                image: "S__81813525.jpg", 
+                text: "你完美複製了湯川秀樹的傳奇人生。你在京都帝國大學深耕理論物理，於 1935 年提出了著名的介子理論，並在 1949 年獲得了日本首個諾貝爾物理學獎。你的名字將被永遠載入基礎物理科學的史冊中。" 
+            },
+            "endingB": { 
+                title: "【結局 B：知性教授與和平使者】", 
+                image: "S__81813524.jpg", 
+                text: "你走上了純粹理論物理學家的道路，但比起名譽，你更關注人類社會的未來。後半生你積極投身於反核與世界和平運動，共同發表了《羅素—愛因斯坦宣言》，成為受人景仰的京都大學名譽教授，在科學與人道主義之間找到了完美的支點。" 
+            },
+            "endingC": { 
+                title: "【結局 C：開創時代的工業領袖】", 
+                image: "S__81813523.jpg", 
+                text: "你從物理學系畢業後，轉向了更具實作價值的精密機械與工業技術。你憑藉著紮實的基礎科學底子，帶領戰後日本的機械工業走向現代化，成為了備受敬重的工業界巨擘與應用科學導師。" 
+            },
+            "endingD": { 
+                title: "【結局 D：昭和浪漫的京都文豪】", 
+                image: "S__81813522.jpg", 
+                text: "你徹底離開了冷冰冰的公式，走向了充滿溫度的感性世界。你以細膩溫潤的筆觸描寫京都的四季、古都的街道與幽微的人心，成為了昭和時代著名的傳奇文豪。對你而言，生活與美學才是終極的真理。" 
+            }
         };
 
         let currentNode = "cover";
 
+        // 3. 遊戲畫面渲染邏輯
         function renderGame() {
             const container = document.getElementById('game-card');
             container.classList.remove('show'); container.classList.add('fade');
@@ -173,9 +202,10 @@
             setTimeout(() => {
                 if (endings[currentNode]) {
                     const end = endings[currentNode];
+                    let imgHtml = end.image ? `<img class="quiz-image" src="${end.image}" style="display:block;">` : "";
                     container.innerHTML = `
                         <div class="gold-glow-title">${end.title}</div>
-                        <img class="quiz-image" src="${end.image}" style="display:block;">
+                        ${imgHtml}
                         <div class="ending-text">${end.text}</div>
                         <button class="btn btn-center btn-theory" onclick="showTheory()">✨ 了解湯川的介子理論</button>
                         <button class="btn btn-center" onclick="location.reload()">重新探索人生</button>
@@ -254,6 +284,7 @@
 
             document.addEventListener('mousemove', e => { mouseX = (e.clientX - window.innerWidth / 2) * 0.08; mouseY = (e.clientY - window.innerHeight / 2) * 0.08; });
             document.addEventListener('touchmove', e => { if(e.touches.length > 0) { mouseX = (e.touches[0].clientX - window.innerWidth / 2) * 0.08; mouseY = (e.touches[0].clientY - window.innerHeight / 2) * 0.08; }});
+            window.addEventListener('resize', onWindowResize, false);
             animate();
         }
 
@@ -264,6 +295,12 @@
             camera.position.y += (-mouseY - camera.position.y) * 0.05;
             camera.lookAt(scene.position);
             renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
         window.onload = () => { renderGame(); init3D(); };
