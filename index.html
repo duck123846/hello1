@@ -4,106 +4,217 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>湯川秀樹：探求者的思緒</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         /* ==========================================
-           1. 核心風格與 3D 畫布
+           1. 視覺基礎：深邃量子空間背景
            ========================================== */
+        :root {
+            --gold-light: #fff6df;
+            --gold-main: #f3cc83;
+            --gold-dark: #d4a359;
+            --bg-deep: #05070b;
+        }
+
         body {
-            margin: 0; padding: 0; background-color: #05070b; color: #cbd5e1;
-            font-family: 'Noto Serif TC', serif; display: flex; justify-content: center;
-            align-items: center; min-height: 100vh; overflow: hidden; position: relative;
+            margin: 0; padding: 0; background-color: var(--bg-deep);
+            color: #cbd5e1; font-family: 'Noto Serif TC', serif;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden; position: relative;
+            perspective: 1500px; /* 為了立體翻頁效果建立的 3D 視角深度 */
         }
 
         #webgl-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
         /* ==========================================
-           2. 互動主卡片（優化手機排版）
+           2. 置中裝飾卡片（翻頁與書卷質感）
            ========================================== */
         .game-container {
-            width: 92%; max-width: 580px; background: rgba(10, 15, 24, 0.82);
-            backdrop-filter: blur(12px); border: 1px solid rgba(212, 163, 89, 0.3);
-            border-radius: 16px; padding: 35px 25px; box-shadow: 0 25px 55px rgba(0, 0, 0, 0.8);
-            transition: all 0.4s ease; z-index: 10; position: relative; max-height: 90vh; overflow-y: auto;
+            width: 92%; max-width: 650px; 
+            background: rgba(12, 18, 28, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 4px;
+            padding: 50px 35px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(212, 163, 89, 0.05);
+            z-index: 10; position: relative;
+            text-align: center;
+            border: 1px solid rgba(212, 163, 89, 0.2);
+            max-height: 92vh; overflow-y: auto;
+            
+            /* 設定翻頁旋轉軸為卡片左側 */
+            transform-origin: left center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
         }
 
-        .fade { opacity: 0; transform: translateY(10px); }
-        .show { opacity: 1; transform: translateY(0); }
+        /* 幾何金色雙框 */
+        .game-container::before {
+            content: ""; position: absolute;
+            top: 15px; left: 15px; right: 15px; bottom: 15px;
+            border: 1px solid rgba(212, 163, 89, 0.15); pointer-events: none;
+        }
 
+        /* 古典裝飾角 */
+        .corner {
+            position: absolute; width: 25px; height: 25px;
+            border: 2px solid var(--gold-main); pointer-events: none;
+        }
+        .tl { top: 30px; left: 30px; border-right: 0; border-bottom: 0; }
+        .tr { top: 30px; right: 30px; border-left: 0; border-bottom: 0; }
+        .bl { bottom: 30px; left: 30px; border-right: 0; border-top: 0; }
+        .br { bottom: 30px; right: 30px; border-left: 0; border-top: 0; }
+
+        /* ==========================================
+           3. 核心特效：立體翻頁轉場與打字書寫
+           ========================================== */
+        /* 翻頁動畫：向左旋轉並淡出 */
+        .page-flip-out {
+            transform: rotateY(-90deg) scale(0.95); opacity: 0;
+        }
+        /* 新頁進場：從右側翻開進來 */
+        .page-flip-in {
+            transform: rotateY(0deg) scale(1); opacity: 1;
+        }
+
+        /* 模擬打字書寫的游標閃爍 */
+        .writing-cursor::after {
+            content: "|";
+            color: var(--gold-main);
+            animation: blink 0.8s infinite;
+            font-weight: 400;
+        }
+        @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+        /* ==========================================
+           4. 標題與內文字體
+           ========================================== */
         .gold-glow-title {
-            font-size: 28px; font-weight: 700; background: linear-gradient(to bottom, #fff6df 0%, #f3cc83 50%, #d4a359 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(212, 163, 89, 0.4));
-            margin-bottom: 20px; line-height: 1.4; text-align: center;
+            font-size: 32px; font-weight: 900; 
+            background: linear-gradient(to bottom, var(--gold-light) 0%, var(--gold-main) 50%, var(--gold-dark) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(212, 163, 89, 0.4));
+            margin-bottom: 25px; line-height: 1.5;
         }
 
-        .question-text { font-size: 18px; line-height: 1.7; margin-bottom: 25px; color: #f1f5f9; text-align: left; }
+        .cover-subtitle {
+            font-size: 16px; color: #94a3b8; letter-spacing: 2px; margin-bottom: 45px;
+        }
+        .cover-subtitle::after {
+            content: ""; display: block; width: 60px; height: 1px; background: var(--gold-dark); margin: 15px auto 0; opacity: 0.5;
+        }
+
+        .question-text {
+            font-size: 19px; line-height: 1.8; margin-bottom: 35px;
+            color: #f1f5f9; font-weight: 500; text-align: justify;
+            min-height: 60px; /* 預留高度防止字體書寫時卡片高度大幅震盪 */
+        }
+
+        .image-wrapper { width: 100%; display: flex; justify-content: center; margin-bottom: 25px; }
+        .quiz-image {
+            max-width: 100%; max-height: 200px; border-radius: 2px;
+            border: 1px solid rgba(212, 163, 89, 0.3); box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: none;
+        }
+
+        /* ==========================================
+           5. 考卷答案卡選擇鈕（空格與塗黑設計）
+           ========================================== */
+        .btn-group { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 
         .btn {
-            display: block; width: 100%; padding: 15px 20px; margin-bottom: 12px;
-            background-color: rgba(16, 24, 41, 0.85); border: 1px solid rgba(212, 163, 89, 0.25);
-            border-radius: 8px; color: #e2e8f0; font-size: 15px; cursor: pointer; transition: 0.2s;
+            width: 100%; max-width: 480px; padding: 16px 22px;
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(212, 163, 89, 0.25);
+            border-radius: 4px; color: var(--gold-light);
+            font-size: 15px; font-family: 'Noto Serif TC', serif;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; gap: 16px; line-height: 1.5;
         }
-        .btn:hover { border-color: #f3cc83; background-color: rgba(24, 37, 64, 0.95); transform: translateX(5px); }
 
-        .btn-center {
-            text-align: center; background: linear-gradient(135deg, #f3cc83 0%, #d4a359 100%);
-            color: #05070b; font-weight: 700; border: none; margin-top: 15px;
+        /* 試卷答案卡：方框 [  ] */
+        .sheet-box {
+            width: 22px; height: 16px; border: 1px solid var(--gold-main);
+            position: relative; flex-shrink: 0; background: transparent;
+            transition: all 0.2s ease;
         }
-        
-        /* 結局下方的特殊按鈕 */
+
+        /* 塗黑特效 (2B鉛筆石墨質感) */
+        .btn.selected .sheet-box {
+            background-color: #2a2a35; /* 鉛筆塗黑的基底 */
+            border-color: #f3cc83;
+            /* 利用複雜陰影模擬鉛筆在方框內塗黑塗滿的筆觸 */
+            box-shadow: inset 0 0 6px #000, 0 0 8px rgba(243, 204, 131, 0.4);
+        }
+        .btn.selected .sheet-box::after {
+            content: "■"; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scaleX(1.4);
+            color: #f3cc83; font-size: 18px; opacity: 0.85;
+        }
+
+        .btn:hover {
+            background-color: rgba(212, 163, 89, 0.08);
+            border-color: var(--gold-main);
+        }
+
+        /* 置中大按鈕 */
+        .btn-center {
+            justify-content: center; text-align: center;
+            background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
+            color: #05070b; font-weight: 700; border: none; margin-top: 10px; max-width: 220px;
+        }
+        .btn-center:hover { filter: brightness(1.1); transform: scale(1.03); color: #05070b; }
+
         .btn-theory {
-            background-color: rgba(142, 148, 242, 0.15); border: 1px solid rgba(142, 148, 242, 0.4);
-            color: #8e94f2; margin-top: 10px;
+            background: rgba(142, 148, 242, 0.15); border: 1px solid rgba(142, 148, 242, 0.4);
+            color: #8e94f2; justify-content: center; max-width: 260px;
         }
         .btn-theory:hover { background-color: rgba(142, 148, 242, 0.3); color: #fff; }
 
-        /* 題目圖片與卡片完美融合 */
-        .quiz-image {
-            width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;
-            margin-bottom: 25px; border: 1px solid rgba(212, 163, 89, 0.2);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none;
+        .ending-title {
+            font-size: 26px; font-weight: 700;
+            background: linear-gradient(to bottom, var(--gold-light) 0%, var(--gold-main) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 25px; filter: drop-shadow(0 0 10px rgba(212, 163, 89, 0.4));
         }
-
-        /* 結局專用內文 */
-        .ending-text { font-size: 15px; line-height: 1.8; color: #cbd5e1; text-align: justify; margin-bottom: 25px; }
+        .ending-text { font-size: 16px; line-height: 1.9; color: #cbd5e1; text-align: justify; margin-bottom: 30px; }
 
         /* ==========================================
-           3. 介子理論小劇場動畫 (Meson Animation)
+           6. 介子理論科普劇場
            ========================================== */
         #theory-view { display: none; text-align: center; }
-
-        .atom-nucleus {
-            position: relative; width: 200px; height: 150px; margin: 30px auto;
-            background: radial-gradient(circle, rgba(142,148,242,0.05) 0%, transparent 70%);
+        .game-of-catch {
+            position: relative; width: 100%; height: 160px; margin: 30px 0;
+            display: flex; justify-content: center; align-items: center;
         }
-
-        /* 質子與中子 */
-        .particle {
-            position: absolute; width: 40px; height: 40px; border-radius: 50%;
-            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.1);
+        .player {
+            width: 60px; height: 60px; border-radius: 50%; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; font-size: 12px; font-weight: 700; color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
-        .proton { background: radial-gradient(circle at 30% 30%, #ff5f5f, #8b0000); left: 40px; top: 50px; }
-        .neutron { background: radial-gradient(circle at 30% 30%, #5fafff, #003366); right: 40px; top: 50px; }
-
-        /* 介子：在兩者間高速彈跳 */
-        .meson {
-            position: absolute; width: 12px; height: 12px; background: #f3cc83;
-            border-radius: 50%; top: 64px; left: 94px;
-            box-shadow: 0 0 15px #f3cc83, 0 0 30px #f3cc83;
-            animation: exchange 0.6s infinite ease-in-out;
+        .player-p { background: #ff4d4d; position: absolute; left: 15%; }
+        .player-n { background: #4d94ff; position: absolute; right: 15%; }
+        .meson-ball {
+            width: 18px; height: 18px; background: var(--gold-main); border-radius: 50%;
+            box-shadow: 0 0 20px var(--gold-main); position: absolute; z-index: 5;
+            animation: catch-game 0.8s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
         }
-
-        @keyframes exchange {
-            0%, 100% { transform: translateX(-40px) scale(1.2); }
-            50% { transform: translateX(40px) scale(0.8); }
+        @keyframes catch-game {
+            0%, 100% { left: calc(15% + 50px); transform: scale(1.3); }
+            50% { left: calc(85% - 68px); transform: scale(0.8); }
         }
-
-        .theory-p { font-size: 15px; color: #94a3b8; line-height: 1.8; text-align: justify; margin-top: 20px; }
+        .repel-wave {
+            position: absolute; width: 100px; height: 100px; border: 1px solid rgba(255, 77, 77, 0.3);
+            border-radius: 50%; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        .theory-desc { font-size: 16px; color: #cbd5e1; line-height: 1.8; text-align: left; }
+        .highlight-text { color: var(--gold-main); font-weight: 700; border-bottom: 1px dashed var(--gold-main); }
 
         @media (max-width: 480px) {
-            .gold-glow-title { font-size: 22px; }
-            .game-container { padding: 25px 20px; }
+            .gold-glow-title { font-size: 24px; }
+            .game-container { padding: 45px 25px; }
+            .corner { width: 15px; height: 15px; }
+            .question-text { font-size: 17px; }
+            .btn { font-size: 14px; padding: 14px 16px; }
         }
     </style>
 </head>
@@ -111,159 +222,220 @@
 
     <canvas id="webgl-canvas"></canvas>
 
-    <div class="game-container show" id="game-card"></div>
+    <div class="game-container page-flip-in" id="game-card">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div id="card-content"></div>
+    </div>
 
     <script>
-        // 1. 樹狀劇情分支資料庫
+        // 完整劇本故事
         const storyData = {
             "cover": {
                 isCover: true,
-                title: "「一隅之光，普照世界——<br>從介子理論看萬物聯繫」",
-                subtitle: "湯川秀樹 · 探求者的思緒生平分支遊戲",
+                title: "「一隅之光，普照世界」",
+                subtitle: "從微觀粒子看見萬物的聯繫 · 湯川秀樹生平遊戲",
                 next: "1"
             },
             "1": {
-                text: "【第 1 題】你出生在富裕家庭裡過著優渥的生活，今天你的早餐想吃：",
+                text: "你出生在富裕家庭裡過著優渥的生活，今天你的早餐想吃：",
                 image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80",
                 options: [
-                    { text: "A. 進進堂的麵包配上冰咖啡", next: "2" },
-                    { text: "B. 土鍋炊飯配上紅味噌湯", next: "2" }
+                    { text: "進進堂的剛烤好的麵包配上冰咖啡", next: "2" },
+                    { text: "香氣四溢的土鍋炊飯配上紅味噌湯", next: "2" }
                 ]
             },
             "2": {
-                text: "【第 2 題】今天在學校唸書，發現書包裡還有空間，你打算帶著：",
+                text: "今天在學校唸書，發現書包裡還有空間，你打算帶著：",
                 options: [
-                    { text: "A. 最新一期泰晤士報", next: "3" },
-                    { text: "B. 一小盒和菓子", next: "3" }
+                    { text: "最新一期泰晤士報", next: "3" },
+                    { text: "一小盒和菓子", next: "3" }
                 ]
             },
             "3": {
-                text: "【第 3 題：命運分界】走在京都的長廊上，你看著遠方的天際線，內心深處最渴望探求的是？",
+                text: "走在京都新風館的長廊上，你望向遠方的星空，此時你心中更嚮往的是？",
                 options: [
-                    { text: "A. 物質世界底層的物理定理與真實", next: "4_main" },
-                    { text: "B. 人與人之間感性交織的文學篇章", next: "4_branch3" }
+                    { text: "物質世界背後的終極理型與規律", next: "4_main" },
+                    { text: "人與人之間感性交織的文學篇章", next: "4_branch3" }
                 ]
             },
-            "4_main": { text: "你快要遲到了，在趕去上學路上遇到了一隻貓咪：", options: [{ text: "A. 不理它", next: "5_main" }, { text: "B. 有貓就要摸", next: "5_main" }] },
-            "5_main": { text: "你經歷了努力，考上京都帝國大學物理學系。路過喫茶館，你點了：", options: [{ text: "A. 濃郁醇香的抹茶", next: "6_main" }, { text: "B. 夢幻冰淇淋蘇打", next: "6_main" }] },
-            "6_main": { text: "深入研究物理後，前方的學術道路出現了分歧：", options: [{ text: "A. 堅持走純粹的理論物理", next: "7_main" }, { text: "B. 轉向動手做實驗與應用", next: "7_branch6" }] },
-            "7_main": { text: "1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", options: [{ text: "A. 傳統日式白無垢及黑紋付羽織袴", next: "8_main" }, { text: "B. 西式蕾絲白紗及三件式西裝", next: "8_main" }] },
-            "8_main": { text: "你擔任教授。回家路上雨下很大，你會：", options: [{ text: "A. 搭電車回家", next: "9_main" }, { text: "B. 住在實驗室裡", next: "9_main" }] },
-            "9_main": { text: "深夜你正在推導核力公式，這時你突然想到了：", options: [{ text: "A. 預言未知微觀粒子（介子）的存在", next: "10_mainA" }, { text: "B. 科學與世界和平之間的平衡關係", next: "10_mainB" }] },
+            "4_main": { text: "你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：", options: [{ text: "不理它", next: "5_main" }, { text: "有貓就要摸", next: "5_main" }] },
+            "5_main": { text: "放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：", options: [{ text: "濃郁醇香的抹茶", next: "6_main" }, { text: "夢幻的冰淇淋蘇打", next: "6_main" }] },
+            "6_main": { text: "在選擇大學專業時，你選擇攻讀：", options: [{ text: "京都帝國大學物理學系", next: "7_main" }, { text: "西洋文化學系及基礎現代文學系", next: "7_branch6" }] },
+            "7_main": { text: "1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", options: [{ text: "傳統日式白無垢及黑紋付羽織袴", next: "8_main" }, { text: "西式蕾絲白紗及三件式西裝", next: "8_main" }] },
+            "8_main": { text: "你在32歲擔任京都帝國大學教授。回家路上雨下很大，於是你打算：", options: [{ text: "搭乘電車回家", next: "9_main" }, { text: "住在實驗室裡", next: "9_main" }] },
+            "9_main": { text: "深夜的黑板前，你正在推導微觀粒子的核力公式，這時你突然想到了什麼？", options: [{ text: "預言未知微觀粒子（介子）的存在", next: "10_mainA" }, { text: "科學探求與世界和平之間的平衡關係", next: "10_mainB" }] },
+            "10_mainA": { text: "今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingA" }, { text: "到鴨川河畔一起看夕陽", next: "endingA" }] },
+            "10_mainB": { text: "今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingB" }, { text: "到鴨川河畔一起看夕陽", next: "endingB" }] },
             
-            "10_mainA": { text: "今天特別閒，打算跟妻子湯川澄子來場約會：", options: [{ text: "A. 去百貨公司逛衣服", next: "endingA" }, { text: "B. 到鴨川河畔看夕陽", next: "endingA" }] },
-            "10_mainB": { text: "今天特別閒，打算跟妻子湯川澄子來場約會：", options: [{ text: "A. 去百貨公司逛衣服", next: "endingB" }, { text: "B. 到鴨川河畔看夕陽", next: "endingB" }] },
-            
-            "7_branch6": { text: "今天實驗做到爆肝，你打算：", options: [{ text: "A. 喝咖啡趕進度", next: "8_branch6" }, { text: "B. 直接睡實驗室", next: "8_branch6" }] },
-            "8_branch6": { text: "畢業了，站在人生交叉路口，你打算：", options: [{ text: "A. 投身機械工業", next: "9_branch6" }, { text: "B. 繼續攻讀博士", next: "9_branch6" }] },
-            "9_branch6": { text: "婚禮上，你們打算穿著：", options: [{ text: "A. 傳統日式白無垢", next: "10_branch6" }, { text: "B. 西式蕾絲白紗", next: "10_branch6" }] },
-            "10_branch6": { text: "約會地點，你選擇：", options: [{ text: "A. 百貨公司", next: "endingC" }, { text: "B. 鴨川河畔", next: "endingC" }] },
+            "7_branch6": { text: "今天實驗（或創作）做到爆肝，進度落後，你打算：", options: [{ text: "喝咖啡趕快把今天進度趕完", next: "8_branch6" }, { text: "直接睡實驗室（或書房）了", next: "8_branch6" }] },
+            "8_branch6": { text: "好不容易畢業了，站在人生的交叉路口，你打算：", options: [{ text: "投身機械工業", next: "9_branch6" }, { text: "繼續攻讀博士", next: "9_branch6" }] },
+            "9_branch6": { text: "1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", options: [{ text: "傳統日式白無垢及黑紋付羽織袴", next: "10_branch6" }, { text: "西式蕾絲白紗及三件式西裝", next: "10_branch6" }] },
+            "10_branch6": { text: "但今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingC" }, { text: "到鴨川河畔一起看夕陽", next: "endingC" }] },
 
-            "4_branch3": { text: "快遲到了，遇到一隻可愛的貓咪：", options: [{ text: "A. 不理它", next: "5_branch3" }, { text: "B. 有貓就要摸", next: "5_branch3" }] },
-            "5_branch3": { text: "路過新開的喫茶館，你點了：", options: [{ text: "A. 濃郁抹茶", next: "6_branch3" }, { text: "B. 夢幻蘇打", next: "6_branch3" }] },
-            "6_branch3": { text: "在選擇大學專業時，你攻讀：", options: [{ text: "A. 西洋文化學系", next: "7_branch3" }, { text: "B. 基礎現代文學系", next: "7_branch3" }] },
-            "7_branch3": { text: "與心儀女子結婚，婚禮穿著：", options: [{ text: "A. 日式白無垢", next: "8_branch3" }, { text: "B. 西式蕾絲白紗", next: "8_branch3" }] },
-            "8_branch3": { text: "大學畢業後，打算成為：", options: [{ text: "A. 作家", next: "9_branch3" }, { text: "B. 未來成為教授", next: "9_branch3" }] },
-            "9_branch3": { text: "搭電車回家，心裡想著：", options: [{ text: "A. 明天早餐吃什麼", next: "10_branch3" }, { text: "B. 要不要去喝杯酒", next: "10_branch3" }] },
-            "10_branch3": { text: "說走就走的約會：", options: [{ text: "A. 逛百貨公司", next: "endingD" }, { text: "B. 到鴨川看夕陽", next: "endingD" }] }
+            "4_branch3": { text: "你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：", options: [{ text: "不理它", next: "5_branch3" }, { text: "有貓就要摸", next: "5_branch3" }] },
+            "5_branch3": { text: "放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：", options: [{ text: "濃郁醇香的抹茶", next: "6_branch3" }, { text: "夢幻的冰淇淋蘇打", next: "6_branch3" }] },
+            "6_branch3": { text: "在選擇大學專業時，你選擇攻讀：", options: [{ text: "西洋文化學系", next: "7_branch3" }, { text: "基礎現代文學系", next: "7_branch3" }] },
+            "7_branch3": { text: "1932年，你與心儀的女子結婚。在婚禮上，你們打算穿著：", options: [{ text: "傳統日式白無垢及黑紋付羽織袴", next: "8_branch3" }, { text: "西式蕾絲白紗及三件式西裝", next: "8_branch3" }] },
+            "8_branch3": { text: "好不容易畢業了，站在人生的交叉路口，你打算成為：", options: [{ text: "獨立作家", next: "9_branch3" }, { text: "繼續深造，未來成為文化學教授", next: "9_branch3" }] },
+            "9_branch3": { text: "你搭著路面電車回家，心裡在想著：", options: [{ text: "明天早餐要吃什麼", next: "10_branch3" }, { text: "等等要不要去喝個酒", next: "10_branch3" }] },
+            "10_branch3": { text: "今天特別閒，打算跟妻子來場說走就走的約會，你打算：", options: [{ text: "跟妻子去百貨公司逛衣服", next: "endingD" }, { text: "到鴨川河畔一起看夕陽", next: "endingD" }] }
         };
 
-        // 2. 四大結局完整資料庫（已補回結局 B）
         const endings = {
-            "endingA": { 
-                title: "【結局 A：介子之父，真理的先驅者】", 
-                image: "S__81813525.jpg", 
-                text: "你完美複製了湯川秀樹的傳奇人生。你在京都帝國大學深耕理論物理，於 1935 年提出了著名的介子理論，並在 1949 年獲得了日本首個諾貝爾物理學獎。你的名字將被永遠載入基礎物理科學的史冊中。" 
-            },
-            "endingB": { 
-                title: "【結局 B：知性教授與和平使者】", 
-                image: "S__81813524.jpg", 
-                text: "你走上了純粹理論物理學家的道路，但比起名譽，你更關注人類社會的未來。後半生你積極投身於反核與世界和平運動，共同發表了《羅素—愛因斯坦宣言》，成為受人景仰的京都大學名譽教授，在科學與人道主義之間找到了完美的支點。" 
-            },
-            "endingC": { 
-                title: "【結局 C：開創時代的工業領袖】", 
-                image: "S__81813523.jpg", 
-                text: "你從物理學系畢業後，轉向了更具實作價值的精密機械與工業技術。你憑藉著紮實的基礎科學底子，帶領戰後日本的機械工業走向現代化，成為了備受敬重的工業界巨擘與應用科學導師。" 
-            },
-            "endingD": { 
-                title: "【結局 D：昭和浪漫的京都文豪】", 
-                image: "S__81813522.jpg", 
-                text: "你徹底離開了冷冰冰的公式，走向了充滿溫度的感性世界。你以細膩溫潤的筆觸描寫京都的四季、古都的街道與幽微的人心，成為了昭和時代著名的傳奇文豪。對你而言，生活與美學才是終極的真理。" 
-            }
+            "endingA": { title: "【結局 A：介子之父，真理的先驅者】", image: "S__81813525.jpg", text: "你完美複製了湯川秀樹的傳奇人生。你在京都帝國大學深耕理論物理，於 1935 年提出了著名的介子理論，並在 1949 年獲得了日本首個諾貝爾物理學獎。你的名字將與微觀公式一同，被永遠載入基礎物理科學的史冊中。" },
+            "endingB": { title: "【結局 B：知性教授與和平使者】", image: "S__81813524.jpg", text: "你走上了純粹理論物理學家的道路，但比起名譽，你更關注人類社會的未來。後半生你積極投身於反核與世界和平運動，與愛因斯坦等人共同發表了《羅素—愛因斯坦宣言》，成為受人景仰的京都大學名譽教授，在科學與人道主義之間找到了完美的支點。" },
+            "endingC": { title: "【結局 C：開創時代的工業領袖】", image: "S__81813523.jpg", text: "你從物理學系畢業後，轉向了更具實作價值的精密機械與工業技術。你憑藉著紮實的基礎科學底子與嚴謹的邏輯思維，帶領戰後日本的機械工業走向現代化與國際舞台，成為了備受敬重的工業界巨擘與應用科學導師。" },
+            "endingD": { title: "【結局 D：昭和浪漫的京都文豪】", image: "S__81813522.jpg", text: "你徹底離開了冷冰冰的公式，走向了充滿溫度的感性世界。你以細膩溫潤的筆觸描寫京都的四季、古都的街道與幽微的人心，成為了昭和時代著名的傳奇文豪。對你而言，生活、文字與美學才是探求世界的終極真理。" }
         };
 
         let currentNode = "cover";
+        let typeTimer = null; // 控制書寫特效的計時器
 
-        // 3. 遊戲畫面渲染邏輯
-        function renderGame() {
-            const container = document.getElementById('game-card');
-            container.classList.remove('show'); container.classList.add('fade');
+        // ==========================================
+        // 核心功能：鋼筆/粉筆 逐字書寫效果
+        // ==========================================
+        function typeWriter(text, elementId, speed = 35, callback) {
+            let i = 0;
+            const element = document.getElementById(elementId);
+            element.innerHTML = "";
+            element.classList.add("writing-cursor"); // 附加書寫游標
 
-            setTimeout(() => {
-                if (endings[currentNode]) {
-                    const end = endings[currentNode];
-                    let imgHtml = end.image ? `<img class="quiz-image" src="${end.image}" style="display:block;">` : "";
-                    container.innerHTML = `
-                        <div class="gold-glow-title">${end.title}</div>
-                        ${imgHtml}
-                        <div class="ending-text">${end.text}</div>
-                        <button class="btn btn-center btn-theory" onclick="showTheory()">✨ 了解湯川的介子理論</button>
-                        <button class="btn btn-center" onclick="location.reload()">重新探索人生</button>
-                    `;
-                } 
-                else if (storyData[currentNode]?.isCover) {
-                    const cover = storyData[currentNode];
-                    container.innerHTML = `
-                        <div class="gold-glow-title">${cover.title}</div>
-                        <div class="cover-subtitle">${cover.subtitle}</div>
-                        <button class="btn btn-center" onclick="changeNode('${cover.next}')">開始旅程</button>
-                    `;
+            if (typeTimer) clearInterval(typeTimer);
+
+            typeTimer = setInterval(() => {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typeTimer);
+                    element.classList.remove("writing-cursor"); // 書寫完畢移除游標
+                    if (callback) callback();
                 }
-                else {
-                    const node = storyData[currentNode];
-                    let imgHtml = node.image ? `<img class="quiz-image" src="${node.image}" style="display:block;">` : "";
-                    let optionsHtml = node.options.map(opt => `<button class="btn" onclick="changeNode('${opt.next}')">${opt.text}</button>`).join("");
-                    container.innerHTML = `${imgHtml}<div class="question-text">${node.text}</div><div>${optionsHtml}</div>`;
-                }
-                container.classList.remove('fade'); container.classList.add('show');
-            }, 300);
+            }, speed);
         }
 
-        function changeNode(n) { currentNode = n; renderGame(); }
-
         // ==========================================
-        // 4. 科普劇場：介子理論動畫功能
+        // 核心功能：2.5D 立體翻頁路由控制
         // ==========================================
-        function showTheory() {
+        function pageFlipTransition(renderCallback) {
             const container = document.getElementById('game-card');
-            container.classList.remove('show'); container.classList.add('fade');
             
+            // 1. 執行向左旋轉翻頁動畫
+            container.classList.remove('page-flip-in');
+            container.classList.add('page-flip-out');
+
             setTimeout(() => {
-                container.innerHTML = `
-                    <div id="theory-view" style="display:block;">
-                        <div class="gold-glow-title">介子理論：萬物的聯繫</div>
-                        <div class="atom-nucleus">
-                            <div class="particle proton"></div>
-                            <div class="particle neutron"></div>
-                            <div class="meson"></div>
-                        </div>
-                        <p class="theory-p">
-                            為什麼原子核裡的質子（帶正電）不會因為電性相斥而炸開？<br><br>
-                            湯川秀樹預言：質子與中子之間，像是在「接球」一樣，高速交換著一種神祕粒子——<b>「介子」</b>。這種接球產生的力，比電磁力強上百倍，將世界微觀的基礎緊緊扣在一起。
-                        </p>
-                        <button class="btn btn-center" style="margin-top:30px;" onclick="renderGame()">返回結局</button>
+                // 2. 換頁空檔：更換卡片內文
+                renderCallback();
+
+                // 3. 從右側展開新頁面
+                container.classList.remove('page-flip-out');
+                container.classList.add('page-flip-in');
+            }, 500); // 對應 3D 旋轉時間
+        }
+
+        function renderGame() {
+            const content = document.getElementById('card-content');
+            
+            // 1. 結局頁面
+            if (endings[currentNode]) {
+                const end = endings[currentNode];
+                content.innerHTML = `
+                    <div class="ending-title">${end.title}</div>
+                    <div class="image-wrapper"><img src="${end.image}" style="display:block;" class="quiz-image"></div>
+                    <div class="ending-text" id="type-text"></div>
+                    <div class="btn-group" id="end-btns" style="opacity:0; transition:opacity 0.5s;">
+                        <button class="btn btn-center btn-theory" onclick="showTheory()">✨ 30秒看懂：什麼是介子理論？</button>
+                        <button class="btn btn-center" onclick="location.reload()">重新探索人生</button>
                     </div>
                 `;
-                container.classList.remove('fade'); container.classList.add('show');
-            }, 300);
+                // 文字寫完後，再優雅淡出重新挑戰按鈕
+                typeWriter(end.text, "type-text", 20, () => {
+                    document.getElementById('end-btns').style.opacity = "1";
+                });
+            } 
+            // 2. 封面首頁
+            else if (storyData[currentNode]?.isCover) {
+                const cover = storyData[currentNode];
+                content.innerHTML = `
+                    <div class="gold-glow-title">${cover.title}</div>
+                    <div class="cover-subtitle">${cover.subtitle}</div>
+                    <div class="btn-group">
+                        <button class="btn btn-center" onclick="changeNode('${cover.next}')">開始探索</button>
+                    </div>
+                `;
+            }
+            // 3. 一般題目頁（答案卡填空式設計）
+            else {
+                const node = storyData[currentNode];
+                let imgHtml = node.image ? `<div class="image-wrapper"><img class="quiz-image" src="${node.image}" style="display:block;"></div>` : "";
+                
+                // 將選項變更為考卷填空格式 [ ]
+                let btns = node.options.map((o, idx) => `
+                    <button class="btn" id="opt-${idx}" onclick="selectOption('opt-${idx}', '${o.next}')">
+                        <div class="sheet-box"></div>
+                        <div>${o.text}</div>
+                    </button>
+                `).join("");
+
+                content.innerHTML = `${imgHtml}<div class="question-text" id="type-question"></div><div class="btn-group" id="quiz-btns" style="opacity:0; transition:opacity 0.4s;">${btns}</div>`;
+                
+                // 題目文字觸發逐字書寫效果
+                typeWriter(node.text, "type-question", 30, () => {
+                    document.getElementById('quiz-btns').style.opacity = "1"; // 書寫完，選項才浮現
+                });
+            }
+        }
+
+        // 玩家點擊選項：模擬2B鉛筆劃記答案卡，隨後翻頁
+        function selectOption(btnId, nextNode) {
+            const targetBtn = document.getElementById(btnId);
+            targetBtn.classList.add('selected'); // 觸發塗黑動畫
+
+            // 停頓 0.4 秒讓玩家親眼看見「格子被塗黑」的劃記感，隨後觸發翻頁
+            setTimeout(() => {
+                changeNode(nextNode);
+            }, 400);
+        }
+
+        function changeNode(n) { 
+            currentNode = n; 
+            pageFlipTransition(renderGame); 
         }
 
         // ==========================================
-        // 5. 3D 量子空間渲染引擎
+        // 6. 科普小劇場：接球動畫版
         // ==========================================
-        let scene, camera, renderer, particleSystem;
-        let mouseX = 0, mouseY = 0;
+        function showTheory() {
+            pageFlipTransition(() => {
+                const content = document.getElementById('card-content');
+                content.innerHTML = `
+                    <div id="theory-view" style="display:block;">
+                        <div class="gold-glow-title">介子：宇宙最強的「接球遊戲」</div>
+                        <div class="game-of-catch">
+                            <div class="repel-wave" style="left:15%"></div>
+                            <div class="player player-p">質子<br>(+)</div>
+                            <div class="meson-ball"></div>
+                            <div class="player player-n">中子<br>(0)</div>
+                        </div>
+                        <div class="theory-desc" id="theory-text"></div>
+                        <button class="btn btn-center" id="back-btn" style="margin-top:35px; opacity:0; transition:opacity 0.4s;" onclick="renderGame()">返回我的結局</button>
+                    </div>
+                `;
+                
+                const desc = "想像原子核裡有一群脾氣暴躁的小人（質子），因為大家都帶正電，根據「同性相斥」的原理，他們每天都瘋狂地想要把對方推開、炸毀原子核。\n\n湯川秀樹驚人地預言：他們之所以能安穩地聚在一起，是因為他們在玩一場極速的「接球遊戲」。\n\n質子與中子之間，透過不斷朝對方丟出一顆具有質量的能量球（介子），在拋接的過程中產生了巨大的牽引拉力。這股力量比電力強上一百倍，強行抵消了排斥力，把微觀世界緊緊鎖在一起！";
+                
+                typeWriter(desc, "theory-text", 20, () => {
+                    document.getElementById('back-btn').style.opacity = "1";
+                });
+            });
+        }
 
+        // ==========================================
+        // 7. Three.js 3D 量子空間渲染引擎
+        // ==========================================
+        let scene, camera, renderer, particleSystem, mouseX = 0, mouseY = 0;
         function init3D() {
             const canvas = document.getElementById('webgl-canvas');
             scene = new THREE.Scene();
@@ -273,34 +445,26 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-            const particleCount = 1800;
+            const particleCount = 2000;
             const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            for (let i = 0; i < particleCount * 3; i++) positions[i] = (Math.random() - 0.5) * 350;
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            const material = new THREE.PointsMaterial({ color: 0xf3cc83, size: 1.6, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending });
-            particleSystem = new THREE.Points(geometry, material);
+            const pos = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount * 3; i++) pos[i] = (Math.random() - 0.5) * 400;
+            geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({ color: 0xf3cc83, size: 1.5, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
+            particleSystem = new THREE.Points(geometry, mat);
             scene.add(particleSystem);
 
             document.addEventListener('mousemove', e => { mouseX = (e.clientX - window.innerWidth / 2) * 0.08; mouseY = (e.clientY - window.innerHeight / 2) * 0.08; });
-            document.addEventListener('touchmove', e => { if(e.touches.length > 0) { mouseX = (e.touches[0].clientX - window.innerWidth / 2) * 0.08; mouseY = (e.touches[0].clientY - window.innerHeight / 2) * 0.08; }});
-            window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
             animate();
         }
-
         function animate() {
             requestAnimationFrame(animate);
-            particleSystem.rotation.y += 0.0008;
+            particleSystem.rotation.y += 0.0006;
             camera.position.x += (mouseX - camera.position.x) * 0.05;
             camera.position.y += (-mouseY - camera.position.y) * 0.05;
             camera.lookAt(scene.position);
             renderer.render(scene, camera);
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
         window.onload = () => { renderGame(); init3D(); };
