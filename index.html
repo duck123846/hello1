@@ -8,13 +8,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         /* ==========================================
-           1. 全域背景與滑動解鎖（徹底解決手機卡死）
+           1. 全域背景與滑動配置（解決手機卡死）
            ========================================== */
         :root {
             --gold-light: #fff6df;
             --gold-main: #f3cc83;
             --gold-dark: #d4a359;
             --bg-deep: #05070b;
+            /* 核心：統合成一體化、絕不分裂的純粹深色黑板底色 */
+            --board-solid: #0c121c; 
         }
 
         html, body {
@@ -22,7 +24,6 @@
             background-color: var(--bg-deep);
             color: #cbd5e1; font-family: 'Noto Serif TC', serif;
             min-height: 100vh;
-            /* 允許網頁本體自然長度捲動，解決結局頁面與劇場卡死的問題 */
             overflow-y: auto !important;
             scrollbar-width: none; 
         }
@@ -37,33 +38,32 @@
         .main-wrapper {
             position: relative; z-index: 10;
             display: flex; justify-content: center;
-            padding: 40px 0; /* 留出上下安全空間 */
+            padding: 40px 0;
         }
 
         /* ==========================================
-           2. 講堂黑板卡片（古典金邊證書風格）
+           2. 講堂黑板卡片（統一純色底、消除雙色切換痕跡）
            ========================================== */
         .game-container {
             width: 92%; max-width: 680px; 
-            background: rgba(12, 18, 28, 0.94);
-            backdrop-filter: blur(15px);
+            /* 背景全面統合成單一底色，不再受任何漸層殘留干擾 */
+            background: var(--board-solid) !important;
             border-radius: 4px;
-            padding: 55px 35px 65px 35px;
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.95), inset 0 0 40px rgba(212, 163, 89, 0.08);
+            padding: 60px 40px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.95);
             position: relative;
             text-align: center;
             border: 1px solid rgba(212, 163, 89, 0.25);
-            transition: opacity 0.5s ease;
+            transition: opacity 0.4s ease;
         }
 
-        /* 幾何金色雙框 */
+        /* 古典幾何金線內襯 */
         .game-container::before {
             content: ""; position: absolute;
             top: 15px; left: 15px; right: 15px; bottom: 15px;
             border: 1px solid rgba(212, 163, 89, 0.15); pointer-events: none;
         }
 
-        /* 古典裝飾角 */
         .corner {
             position: absolute; width: 25px; height: 25px;
             border: 2px solid var(--gold-main); pointer-events: none;
@@ -74,16 +74,16 @@
         .br { bottom: 30px; right: 30px; border-left: 0; border-top: 0; }
 
         /* ==========================================
-           3. 核心轉場：135度斜向板擦擦除、強粒子粉筆書寫
+           3. 轉場動畫：無殘留 135度斜向板擦過渡
            ========================================== */
         .board-fade-out { opacity: 0; }
         .board-fade-in { opacity: 1; }
 
-        /* 粉筆粒子一筆一畫凝聚效果 */
+        /* 強粒子粉筆書寫效果 */
         .chalk-word {
             display: inline-block; position: relative;
             opacity: 0; transform: scale(0.9);
-            filter: blur(6px); /* 增強粉筆顆粒感的霧化濾鏡 */
+            filter: blur(6px);
             animation: chalk-render 0.5s forwards cubic-bezier(0.12, 0.8, 0.3, 1);
         }
         @keyframes chalk-render {
@@ -92,19 +92,24 @@
             100% { opacity: 1; filter: blur(0px); transform: scale(1) translate(0, 0); }
         }
 
-        /* 135度左斜上往右斜下板擦橫掃特效 */
+        /* 135度斜向板擦特效：修正為擦除完後自動移開畫面的獨立動態軌跡，不殘留於底色 */
         .board-wiper { position: relative; overflow: hidden; }
         .board-wiper::after {
             content: ""; position: absolute;
-            top: -100%; left: -200%; width: 300%; height: 300%;
-            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.1) 60%, transparent 100%);
-            transition: left 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            top: -150%; left: -200%; width: 350%; height: 350%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.05) 60%, transparent 100%);
             pointer-events: none; z-index: 99;
         }
-        .board-wiper.wiping::after { left: 150%; }
+        .board-wiper.wiping::after {
+            animation: wipe-action 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes wipe-action {
+            0% { top: -150%; left: -200%; }
+            100% { top: 100%; left: 150%; }
+        }
 
         /* ==========================================
-           4. 圖片與文字風格（修復圖片分離感）
+           4. 圖片與標題配置（消除融合分離感）
            ========================================== */
         .gold-glow-title {
             font-size: 30px; font-weight: 900; 
@@ -129,22 +134,21 @@
         .image-wrapper { 
             width: 100%; margin-bottom: 30px; display: flex; justify-content: center;
         }
-        /* 融合強化濾鏡：讓圖片邊緣自然壓黑、壓低亮度，融入黑板 */
         .quiz-image {
             max-width: 100%; max-height: 210px; object-fit: cover; border-radius: 2px;
             border: 1px solid rgba(243, 204, 131, 0.25);
             box-shadow: 0 0 25px rgba(0, 0, 0, 0.9), 0 15px 30px rgba(0, 0, 0, 0.8);
-            filter: brightness(0.88) contrast(1.05); /* 微光投射質感 */
+            filter: brightness(0.88) contrast(1.05);
             display: none;
         }
 
         /* ==========================================
-           5. 2B鉛筆重力劃記（高顯性光圈慢慢散播）
+           5. 2B鉛筆重力劃記答案卡
            ========================================== */
         .btn-group { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 
         .btn {
-            width: 100%; max-width: 500px; padding: 16px 22px;
+            width: 100%; max-width: 500px; padding: 18px 25px;
             background-color: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(212, 163, 89, 0.25);
             border-radius: 4px; color: var(--gold-light);
@@ -154,39 +158,36 @@
             text-align: left;
         }
 
-        /* 試卷填空框 [ ] */
         .sheet-box {
             width: 24px; height: 16px; border: 2px solid var(--gold-main);
-            position: relative; flex-shrink: 0; background: rgba(0,0,0,0.3); overflow: hidden;
+            position: relative; flex-shrink: 0; background: rgba(0,0,0,0.4); overflow: hidden;
         }
 
-        /* 鉛筆濃黑石墨粉末：從左上往右下延伸 */
+        /* 鉛筆石墨慢慢擴散 */
         .sheet-box::before {
             content: ""; position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #121218;
+            background-color: #101015;
             box-shadow: inset 0 0 8px #000;
             transform: translate(-100%, -100%) rotate(45deg);
             transition: transform 0.45s cubic-bezier(0.1, 0.8, 0.25, 1);
         }
 
-        /* 劃記被點選時的強顯性高亮效果 */
         .btn.selected .sheet-box::before { transform: translate(0, 0) rotate(0deg); }
         .btn.selected .sheet-box::after {
             content: "■"; position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scaleX(1.5);
             color: #f5cc84; font-size: 20px; opacity: 1;
-            text-shadow: 0 0 6px var(--gold-main);
+            text-shadow: 0 0 8px var(--gold-main);
             transition: opacity 0.2s ease 0.25s;
         }
         .btn.selected .sheet-box {
             border-color: #ffffff;
-            box-shadow: 0 0 15px var(--gold-main); /* 金色反光光圈 */
+            box-shadow: 0 0 15px var(--gold-main);
         }
         .btn.selected { background-color: rgba(212, 163, 89, 0.08); border-color: #ffffff; }
         .btn:hover:not(.selected) { background: rgba(212, 163, 89, 0.08); border-color: var(--gold-main); }
 
-        /* 置中控制與劇場按鈕 */
         .btn-center {
             justify-content: center; text-align: center;
             background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
@@ -199,10 +200,8 @@
         }
         .btn-theory:hover { background-color: rgba(142, 148, 242, 0.3); color: #fff; }
 
-        .ending-text { font-size: 16px; line-height: 1.9; color: #cbd5e1; text-align: justify; margin-bottom: 30px; }
-
         /* ==========================================
-           6. 介子理論大眾科普劇場（接球機制）
+           6. 介子理論大眾科普劇場
            ========================================== */
         #theory-view { display: none; text-align: center; }
         .game-of-catch {
@@ -255,7 +254,7 @@
     </div>
 
     <script>
-        // 1. 豪華型一字不漏完整劇本故事資料庫（已完全補齊）
+        // 一字不漏豪華完整劇本資料庫
         const storyData = {
             "cover": {
                 isCover: true,
@@ -264,162 +263,162 @@
                 next: "1"
             },
             "1": {
-                text: "【第 1 題】你出生在富裕家庭裡過著優渥的生活，今天你的早餐想吃：",
+                text: "【京都，1910年】你出生在一個充滿文化氣息的富裕家庭。你的父親小川琢治是一位著名的地理學家。今天早晨，你步入餐廳，你想吃什麼？",
                 image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80",
                 options: [
-                    { text: "A. 進進堂的剛烤好的麵包配上冰咖啡", next: "2" },
-                    { text: "B. 香氣四溢的土鍋炊飯配上紅味噌湯", next: "2" }
+                    { text: "進進堂剛烤好的酥脆麵包配上濃郁冰咖啡", next: "2" },
+                    { text: "香氣四溢的土鍋炊飯配上家傳紅味噌湯", next: "2" }
                 ]
             },
             "2": {
-                text: "【第 2 題】今天在學校唸書，發現書包裡還有空間，你打算帶著：",
+                text: "求學期間，你的成績優異。今天在學校唸書，發現書包裡還有一些多餘的空間，你打算額外帶著什麼陪伴你度過午後？",
                 options: [
-                    { text: "A. 最新一期泰晤士報", next: "3" },
-                    { text: "B. 一小盒和菓子", next: "3" }
+                    { text: "最新一期的邊境通訊《泰晤士報》，掌握國際局勢", next: "3" },
+                    { text: "一小盒京都老舖精製的時令和菓子", next: "3" }
                 ]
             },
             "3": {
-                text: "【第 3 題：關鍵抉擇 I】走在京都新風館的長廊上，你望向遠方的星空，此時你心中更嚮往的是？",
+                text: "【第3題：關鍵抉擇I】走在京都新風館的長廊上，你望向遠方靜謐的星空，此時你心中更嚮往的是？",
                 options: [
-                    { text: "A. 物質世界背後的終極理型與規律", next: "4_main" },
-                    { text: "B. 人與人之間感性交織的文學篇章", next: "4_branch3" }
+                    { text: "物質世界背後的終極理型與規律", next: "4_main" },
+                    { text: "人與人之間感性交織的文學篇章", next: "4_branch3" }
                 ]
             },
             "4_main": { 
-                text: "【第 4 題】你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：", 
+                text: "【日常插曲】你正沈浸在量子力學的思考中，猛然發現快要遲到了。在趕去上學路上遇到了一隻慵懶的貓咪，你打算：", 
                 options: [
-                    { text: "A. 不理它", next: "5_main" }, 
-                    { text: "B. 有貓就要摸", next: "5_main" }
+                    { text: "保持理智，快速走過，學問的追求不能遲到", next: "5_main" }, 
+                    { text: "萬物皆有靈，蹲下來摸摸它，遲到也沒關係", next: "5_main" }
                 ] 
             },
             "5_main": { 
-                text: "【第 5 題：喫茶時光】放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：", 
+                text: "【喫茶時光】你經歷了許多曲折與努力，最終考上了京都帝國大學物理學系。放學路上途經一家新開的喫茶館，你打算進去試試。看著菜單，你點了：", 
                 options: [
-                    { text: "A. 濃郁醇香的抹茶", next: "6_main" }, 
-                    { text: "B. 夢幻的冰淇淋蘇打", next: "6_main" }
+                    { text: "一杯濃郁醇香、帶有古都韻味的宇治抹茶", next: "6_main" }, 
+                    { text: "色彩夢幻、象徵現代摩登風格的冰淇淋蘇打", next: "6_main" }
                 ] 
             },
             "6_main": { 
-                text: "【第 6 題：關鍵抉擇 II】在選擇大學專業時，你選擇攻讀：", 
+                text: "【關鍵抉擇 II】深入研究量子與微觀物理後，你發現前方的學術道路出現了分歧。作為一名研究者，你選擇：", 
                 options: [
-                    { text: "A. 京都帝國大學物理學系", next: "7_main" }, 
-                    { text: "B. 西洋文化學系及基礎現代文學系", next: "7_branch6" }
+                    { text: "堅持走純粹的理論物理推導與公式建立", next: "7_main" }, 
+                    { text: "轉向動手做實驗，將物理學應用在機械工業上", next: "7_branch6" }
                 ] 
             },
             "7_main": { 
-                text: "【第 7 題】1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", 
+                text: "【人生大事】1932年，你與湯川澄子結婚，並成為湯川家的入贅女婿。在隆重的婚禮上，你們打算穿著：", 
                 options: [
-                    { text: "A. 傳統日式白無垢及黑紋付羽織袴", next: "8_main" }, 
-                    { text: "B. 西式蕾絲白紗及三件式西裝", next: "8_main" }
+                    { text: "最具傳統韻味的日式白無垢及黑紋付羽織袴", next: "8_main" }, 
+                    { text: "引領時代潮流的西式蕾絲白紗及三件式西裝", next: "8_main" }
                 ] 
             },
             "8_main": { 
-                text: "【第 8 題】你在32歲擔任京都帝國大學教授。回家路上雨下很大，於是你打算：", 
+                text: "【學術之路】你在32歲就擔任了京都帝國大學教授。回家路上雨下得很大，這反映了你研究的心境，此時你打算：", 
                 options: [
-                    { text: "A. 搭乘電車回家", next: "9_main" }, 
-                    { text: "B. 住在實驗室裡", next: "9_main" }
+                    { text: "搭乘電車回家，在溫暖的家中陪伴妻子澄子", next: "9_main" }, 
+                    { text: "留在燈火通明的實驗室裡，繼續與公式搏鬥", next: "9_main" }
                 ] 
             },
             "9_main": { 
-                text: "【第 9 題：關鍵抉擇 III】深夜的黑板前，你正在推導微觀粒子的核力公式，這時你突然想到了什麼？", 
+                text: "【關鍵抉擇 III】深夜的黑板前，你正在推導微觀粒子的核力公式，這時你突然想到了什麼？", 
                 options: [
-                    { text: "A. 預言未知微觀粒子（介子）的存在", next: "10_mainA" }, 
-                    { text: "B. 科學探求與世界和平之間的平衡關係", next: "10_mainB" }
+                    { text: "預言未知微觀粒子（介子）的存在來解釋強相互作用", next: "10_mainA" }, 
+                    { text: "思考科學探求與人類世界和平之間的平衡關係", next: "10_mainB" }
                 ] 
             },
             "10_mainA": { 
-                text: "【第 10 題】今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", 
+                text: "【尾聲】今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算去：", 
                 options: [
-                    { text: "A. 跟妻子去百貨公司逛衣服", next: "endingA" }, 
-                    { text: "B. 到鴨川河畔一起看夕陽", next: "endingA" }
+                    { text: "跟妻子去熱鬧的四條河原町百貨公司逛逛衣服", next: "endingA" }, 
+                    { text: "到暮色中的鴨川河畔，兩個人一起靜靜看夕陽", next: "endingA" }
                 ] 
             },
             "10_mainB": { 
-                text: "【第 10 題】今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", 
+                text: "【尾聲】今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算去：", 
                 options: [
-                    { text: "A. 跟妻子去百貨公司逛衣服", next: "endingB" }, 
-                    { text: "B. 到鴨川河畔一起看夕陽", next: "endingB" }
+                    { text: "去市中心的戲院看場最新引進的外國電影", next: "endingB" }, 
+                    { text: "到鴨川河畔，分享你對未來科學和平的願景", next: "endingB" }
                 ] 
             },
             
             // PATH 2：實作爆肝實驗線
             "7_branch6": { 
-                text: "【第 7 題】今天實驗（或創作）做到爆肝，進度落後，你打算：", 
+                text: "【大難關】今天實驗（或創作）做到爆肝，進度嚴重落後，夜深了，你打算：", 
                 options: [
-                    { text: "A. 喝咖啡趕快把今天進度趕完", next: "8_branch6" }, 
-                    { text: "B. 直接睡實驗室（或書房）了", next: "8_branch6" }
+                    { text: "猛灌一杯濃咖啡，不顧身體疲勞趕快把進度趕完", next: "8_branch6" }, 
+                    { text: "身體是革命本錢，直接睡在充滿儀器的實驗室了", next: "8_branch6" }
                 ] 
             },
             "8_branch6": { 
-                text: "【第 8 題：生涯規劃】好不容易畢業了，站在人生的交叉路口，你打算：", 
+                text: "【生涯規劃】好不容易畢業了，站在戰後復興人生的交叉路口，你打算：", 
                 options: [
-                    { text: "A. 投身機械工業", next: "9_branch6" }, 
-                    { text: "B. 繼續攻讀博士", next: "9_branch6" }
+                    { text: "投身新興的機械工業，用科學改變國民的生活", next: "9_branch6" }, 
+                    { text: "繼續攻讀博士，在學術與教育領域培育下一代", next: "9_branch6" }
                 ] 
             },
             "9_branch6": { 
-                text: "【第 9 題】1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", 
+                text: "【人生大事】1932年，你與湯川澄子結婚。在婚禮上，你們打算穿著：", 
                 options: [
-                    { text: "A. 傳統日式白無垢及黑紋付羽織袴", next: "10_branch6" }, 
-                    { text: "B. 西式蕾絲白紗及三件式西裝", next: "10_branch6" }
+                    { text: "最具傳統韻味的日式白無垢及黑紋付羽織袴", next: "10_branch6" }, 
+                    { text: "引領時代潮流的西式蕾絲白紗及三件式西裝", next: "10_branch6" }
                 ] 
             },
             "10_branch6": { 
-                text: "【第 10 題】但今天特別閒，打算跟妻子湯川澄子來場說走就走的約會，你打算：", 
+                text: "【尾聲】特別空閒的一天，關於這次說走就走的約會地點，你選擇：", 
                 options: [
-                    { text: "A. 跟妻子去百貨公司逛衣服", next: "endingC" }, 
-                    { text: "B. 到鴨川河畔一起看夕陽", next: "endingC" }
+                    { text: "去著名的老字號百貨公司選購精美的居家禮品", next: "endingC" }, 
+                    { text: "在清晨的鴨川河畔散步，呼吸古都新鮮的空氣", next: "endingC" }
                 ] 
             },
 
             // PATH 3：人文與文學路線
             "4_branch3": { 
-                text: "【第 4 題】你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：", 
+                text: "【日常插曲】你快要遲到了，在趕去上學路上遇到了一隻貓咪，你打算：", 
                 options: [
-                    { text: "A. 不理它", next: "5_branch3" }, 
-                    { text: "B. 有貓就要摸", next: "5_branch3" }
+                    { text: "對它視而不見，文學家的內心應該專注於筆下的世界", next: "5_branch3" }, 
+                    { text: "停下腳步與它對視，貓的身影也許是下一個靈感", next: "5_branch3" }
                 ] 
             },
             "5_branch3": { 
-                text: "【第 5 題：喫茶時光】放學路上途經新開的喫茶館，於是你打算進去試試口味。你看了菜單，打算要點：", 
+                text: "【喫茶時光】放學路上途經新開的喫茶館，於是你打算進去試試口味。看著精緻的菜單，你點了：", 
                 options: [
-                    { text: "A. 濃郁醇香的抹茶", next: "6_branch3" }, 
-                    { text: "B. 夢幻的冰淇淋蘇打", next: "6_branch3" }
+                    { text: "濃郁醇香、富含禪意的宇治抹茶", next: "6_branch3" }, 
+                    { text: "色彩夢幻、代表浪漫主義的冰淇淋蘇打", next: "6_branch3" }
                 ] 
             },
             "6_branch3": { 
-                text: "【第 6 題：關鍵抉擇 II】在選擇大學專業時，你選擇攻讀：", 
+                text: "【關鍵抉擇 II】在選擇大學專業時，你不顧家族的物理背景，選擇攻讀：", 
                 options: [
-                    { text: "A. 西洋文化學系", next: "7_branch3" }, 
-                    { text: "B. 基礎現代文學系", next: "7_branch3" }
+                    { text: "西洋文化學系，探究西方哲學思想的源頭", next: "7_branch3" }, 
+                    { text: "基礎現代文學系，用日文編織時代的靈魂", next: "7_branch3" }
                 ] 
             },
             "7_branch3": { 
-                text: "【第 7 題】1932年，你與心儀的女子結婚。在婚禮上，你們打算穿著：", 
+                text: "【人生大事】1932年，你與心儀的女子結婚。在隆重的婚禮上，你們打算穿著：", 
                 options: [
-                    { text: "A. 傳統日式白無垢及黑紋付羽織袴", next: "8_branch3" }, 
-                    { text: "B. 西式蕾絲白紗及三件式西裝", next: "8_branch3" }
+                    { text: "優雅傳統的日式白無垢與禮服", next: "8_branch3" }, 
+                    { text: "時尚現代的西式蕾絲白紗與西裝", next: "8_branch3" }
                 ] 
             },
             "8_branch3": { 
-                text: "【第 8 題：生涯規劃】好不容易畢業了，站在人生的交叉路口，你打算成為：", 
+                text: "【生涯規劃】大學畢業了，站在時代與理想的風口浪尖，你打算：", 
                 options: [
-                    { text: "A. 獨立作家", next: "9_branch3" }, 
-                    { text: "B. 繼續深造，未來成為文化學教授", next: "9_branch3" }
+                    { text: "成為一名獨立作家，用文字紀錄京都的點滴與人心", next: "9_branch3" }, 
+                    { text: "繼續在文化學領域鑽研，未來成為大學教授", next: "9_branch3" }
                 ] 
             },
             "9_branch3": { 
-                text: "【第 9 題】你搭著路面電車回家，心裡在想著：", 
+                text: "【微醺午後】你搭著路面電車回家，心裡正在悠閒地想著什麼？", 
                 options: [
-                    { text: "A. 明天早餐要吃什麼", next: "10_branch3" }, 
-                    { text: "B. 等等要不要去喝個酒", next: "10_branch3" }
+                    { text: "明天的早餐要嘗試什麼樣的新口味", next: "10_branch3" }, 
+                    { text: "下車後要不要去居酒屋喝杯小酒放鬆一下", next: "10_branch3" }
                 ] 
             },
             "10_branch3": { 
-                text: "【第 10 題】今天特別閒，打算跟妻子來場說走就走的約會，你打算：", 
+                text: "【尾聲】今天特別空閒，這場說走就走的浪漫約會，你選擇：", 
                 options: [
-                    { text: "A. 跟妻子去百貨公司逛衣服", next: "endingD" }, 
-                    { text: "B. 到鴨川河畔一起看夕陽", next: "endingD" }
+                    { text: "在熱鬧的百貨公司為彼此選購時髦的節日禮物", next: "endingD" }, 
+                    { text: "在鴨川看著夕陽，那是你筆下最美、最感性的場景", next: "endingD" }
                 ] 
             }
         };
@@ -433,9 +432,6 @@
 
         let currentNode = "cover";
 
-        // ==========================================
-        // 2. 核心功能：強粒子斜向粉筆一筆一畫書寫
-        // ==========================================
         function executeChalkWritter(fullText, containerId, callback) {
             const container = document.getElementById(containerId);
             container.innerHTML = "";
@@ -443,7 +439,7 @@
             characters.forEach((char, index) => {
                 const span = document.createElement("span");
                 span.className = "chalk-word";
-                span.style.animationDelay = `${index * 35}ms`; /* 一筆一畫微觀粉筆摩擦延時 */
+                span.style.animationDelay = `${index * 35}ms`;
                 if (char === "\n") {
                     container.appendChild(document.createElement("br"));
                 } else {
@@ -454,7 +450,6 @@
             setTimeout(() => { if (callback) callback(); }, characters.length * 35 + 500);
         }
 
-        // 135度左斜上往右斜下板擦擦拭轉場
         function boardEraserTransition(renderCallback) {
             const card = document.getElementById('game-card');
             card.classList.add('wiping');
@@ -466,7 +461,7 @@
                 card.classList.remove('wiping');
                 card.classList.remove('board-fade-out');
                 card.classList.add('board-fade-in');
-            }, 700); 
+            }, 720); 
         }
 
         function renderGame() {
@@ -534,7 +529,6 @@
             });
         }
 
-        // Three.js 3D 量子背景
         let scene, camera, renderer, particleSystem;
         function init3D() {
             const canvas = document.getElementById('webgl-canvas');
